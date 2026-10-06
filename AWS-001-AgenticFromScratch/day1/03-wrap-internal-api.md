@@ -56,12 +56,18 @@ Open full size: [PNG](img/diagrams/03-wrap-internal-api-2.png) · [SVG](img/diag
 
 ## Exercise B — From code (30m)
 1. Open `legacy-app/`. No docs, no spec.
-2. Prompt:
-    > Read legacy-app/ and explain what the Promotions endpoints do. Then create read-only MCP tools for them.
+2. Paste this prompt into the Kiro chat panel:
+
+    > Read legacy-app/ and explain what the Promotions endpoints do. Then create read-only MCP tools for them in `mcp-server/tools/promo_tools.py`. Read the service's base URL and token from the environment variables PROMO_API_BASE_URL and PROMO_API_TOKEN.
+
+    As in Exercise A, both variables are already set for the MCP server (`mcp-server/.env` and `.kiro/settings/mcp.json`). How the token is sent, and everything else, Kiro has to work out from the code.
 
 3. Compare with Exercise A: accuracy, hallucinated fields, missed auth headers.
 
-Hidden traps in the legacy code (instructor only) — did Kiro find them?
+The legacy code hides several traps. Did Kiro find them? Check its tools first, then open the list.
+
+<details>
+<summary>Hidden traps (open after the exercise)</summary>
 
 - Money is in **cents** (integers), not dollars.
 - Channels are a **bitmask** (`1` dine-in, `2` takeaway, `4` drive-thru, `8` delivery).
@@ -69,9 +75,34 @@ Hidden traps in the legacy code (instructor only) — did Kiro find them?
 - Auth header is `x-svc-tkn`; errors use `rc` codes (`E01`-`E04`) and reason codes (`BR`, `DT`, `CH`, `MN`, `BQ`).
 - Suspended promos (`st: 'S'`) are hidden; `url.parse()` is deprecated (code-review talking point).
 
+</details>
+
 ## Wrap (15m)
 - Contract-first more reliable; code-reading works but needs more review.
-- Tool design: 8 endpoints became ~5 tools. Why?
+- Tool design: 8 endpoints became ~5 tools. Why? Discuss first, then open the answer.
+
+    <details>
+    <summary>Answer</summary>
+
+    Tools should match the questions people ask, not the shape of the API. The 8 read-only Ops API endpoints became 5 tools in the reference solution:
+
+    | API endpoints | Tool | Why |
+    |---|---|---|
+    | `GET /inventory/{branch}/stock` and `GET /inventory/{branch}/stock/{item}` | `get_current_stock` (optional `item_id`) | **Merged:** same question ("how much do I have?"), one optional parameter instead of two tools |
+    | the same stock endpoint, filtered | `list_low_stock_items` | **Added:** "what am I low on?" is what managers ask; without it the model must fetch everything and compare with par levels itself |
+    | `GET /sales/{branch}/today` | `get_today_sales` | Kept |
+    | `GET /pos/{branch}/orders` | `list_orders_today` | Kept, named for what it covers (today only) |
+    | `GET /pos/{branch}/orders/{order}` | `get_order` | Kept |
+    | `GET /branches`, `GET /branches/{branch}` | none | **Skipped:** the Redshift tool `find_branch` already turns a name into an ID |
+    | `GET /menu/items` | none | **Skipped:** a short, fixed list that is in the data dictionary |
+
+    Why fewer, task-shaped tools are better:
+
+    - **The model has to choose.** Every tool's name and description goes into its context: many near-duplicates mean more wrong picks and more tokens on every question.
+    - **One clear tool per question** gives simpler descriptions, so the model picks right more often (Day 3 measures exactly this).
+    - **No two tools answer the same thing**, such as `find_branch` and `GET /branches`.
+
+    </details>
 - Write endpoints (`issueRefund`, `requestStockTransfer`) held back until auth exists → revisited Day 2 M05.
 
 ## Checkpoint
