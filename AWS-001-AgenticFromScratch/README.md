@@ -24,12 +24,16 @@ See [Status and known limitations](learning-plan.md#status-and-known-limitations
 ## Quick start (local, no AWS)
 
 ```bash
+git clone https://github.com/kuettai/ktws.git
+cd ktws/AWS-001-AgenticFromScratch          # run every command in the guides from here
 docker compose up -d                       # mock POS/Inventory/Sales API + legacy Promotions service
 cd solutions/mcp-server && cp .env.example .env && uv sync
 npx @modelcontextprotocol/inspector uv run python server.py
 ```
 
 ```powershell
+git clone https://github.com/kuettai/ktws.git
+cd ktws\AWS-001-AgenticFromScratch          # run every command in the guides from here
 docker compose up -d                       # mock POS/Inventory/Sales API + legacy Promotions service
 cd solutions/mcp-server
 Copy-Item .env.example .env

@@ -6,7 +6,7 @@ The script is `rst_preflight.py`. It only reads: it installs nothing, changes no
 
 ## How to run it
 
-1. Get `scripts/rst_preflight.py` from this repository and save it to any folder, for example Downloads.
+1. Get the script. If you have already cloned the repository ([Get the workshop code](prereqs.md#get-the-workshop-code)), it is in `scripts/` of the workshop folder. Otherwise download [rst_preflight.py](https://raw.githubusercontent.com/kuettai/ktws/main/AWS-001-AgenticFromScratch/scripts/rst_preflight.py) (right-click → Save link as) to any folder, for example Downloads.
 2. Open a terminal in that folder:
     - **macOS:** Terminal
     - **Windows:** PowerShell
