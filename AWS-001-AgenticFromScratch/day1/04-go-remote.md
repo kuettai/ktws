@@ -37,7 +37,7 @@
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` MCP Inspector with transport Streamable HTTP and URL `http://localhost:8000/mcp` · save as `img/m04-inspector-http.png`
 
-4. Container (needs Docker or Finch), from the workshop folder:
+4. Container (needs Docker or Finch). First **stop the server from step 2** (Ctrl+C in its terminal): the container runs its own copy on the same port 8000. Inspector from step 3 can stay open; reconnect it once the container is up. Then, in a terminal in the workshop folder (`cd ..` from `mcp-server`):
 
     ```bash
     docker compose --profile http up --build
@@ -46,7 +46,9 @@
     ```powershell
     docker compose --profile http up --build
     ```
-    Starts mock-api, legacy-app and the MCP server on `:8000`. With Finch, use `finch compose --profile http up --build`.
+    Starts mock-api, legacy-app and the MCP server on `:8000`, and stays in the foreground showing their logs. With Finch, use `finch compose --profile http up --build`.
+
+    The containerised server reads its settings from `mcp-server/.env`, and gets your `~/.aws` folder read-only for the Redshift tools. So `mcp-server/.env` must have `AWS_PROFILE=<your profile>` (otherwise the Redshift tools use your default credentials). Profiles with stored keys work in the container; profiles that run a program or use single sign-on to get credentials may not. If the Redshift tools fail only in the container, that is why; the Ops API and Promotions tools work either way.
 
     To stop everything: `docker compose --profile http down` (with Finch: `finch compose --profile http down`, then `finch compose down`, because Finch leaves the other services running otherwise).
 
