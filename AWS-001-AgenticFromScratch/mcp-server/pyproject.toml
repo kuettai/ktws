@@ -1,0 +1,20 @@
+[project]
+name = "rst-mcp"
+version = "1.0.0"
+description = "restaurant MCP server: Redshift analytics + Operations API tools"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=2.2,<3",
+    "boto3>=1.35",
+    "httpx>=0.28",
+    "pyjwt[crypto]>=2.10",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

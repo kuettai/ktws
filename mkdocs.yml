@@ -1,0 +1,105 @@
+# Workshop website. Build: python3 build_site.py && mkdocs build --strict
+site_name: ktws workshops
+site_description: Hands-on workshops - MCP servers, AI agents and AWS
+site_url: https://kuettai.github.io/ktws/
+repo_url: https://github.com/kuettai/ktws
+repo_name: kuettai/ktws
+edit_uri: ""
+docs_dir: _site_src
+site_dir: _site
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: amber
+      toggle: { icon: material/weather-night, name: Dark mode }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: amber
+      toggle: { icon: material/weather-sunny, name: Light mode }
+
+extra_javascript:
+  - assets/diagram-zoom.js
+extra_css:
+  - assets/diagram-zoom.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc: { permalink: true }
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight: { anchor_linenums: true }
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+      clickable_checkbox: true
+
+nav:
+  - Home: index.md
+  - AWS-001 Agentic from Scratch:
+      - Overview: AWS-001-AgenticFromScratch/index.md
+      - Plan:
+          - Learning plan: AWS-001-AgenticFromScratch/learning-plan.md
+          - Prerequisites: AWS-001-AgenticFromScratch/prereqs.md
+          - Pre-event check: AWS-001-AgenticFromScratch/PREFLIGHT-CHECK.md
+      - Pre-work:
+          - Python reading primer: AWS-001-AgenticFromScratch/prework/python-reading-primer.md
+          - Reviewing Kiro specs, steering and hooks: AWS-001-AgenticFromScratch/prework/kiro-guide.md
+      - Day 1 - Build and secure an MCP server:
+          - M00 MCP fundamentals: AWS-001-AgenticFromScratch/day1/00-mcp-fundamentals.md
+          - M01 Hello MCP: AWS-001-AgenticFromScratch/day1/01-hello-mcp.md
+          - M02 Redshift tools: AWS-001-AgenticFromScratch/day1/02-redshift-tools.md
+          - M03 Wrap an internal API: AWS-001-AgenticFromScratch/day1/03-wrap-internal-api.md
+          - M04 Go remote: AWS-001-AgenticFromScratch/day1/04-go-remote.md
+          - M05 Deploy to ECS: AWS-001-AgenticFromScratch/day1/05-deploy-ecs.md
+          - M06 Authentication: AWS-001-AgenticFromScratch/day1/06-auth.md
+          - M07 End to end: AWS-001-AgenticFromScratch/day1/07-end-to-end.md
+      - Day 2 - Amazon Bedrock AgentCore (preview):
+          - M01 AgentCore overview: AWS-001-AgenticFromScratch/day2/01-agentcore-overview.md
+          - M02 Runtime: AWS-001-AgenticFromScratch/day2/02-runtime.md
+          - M03 Gateway: AWS-001-AgenticFromScratch/day2/03-gateway.md
+          - M04 Identity: AWS-001-AgenticFromScratch/day2/04-identity.md
+          - M05 Policy and observability: AWS-001-AgenticFromScratch/day2/05-policy-observability.md
+          - M06 Capstone: AWS-001-AgenticFromScratch/day2/06-capstone.md
+          - M07 Decision matrix: AWS-001-AgenticFromScratch/day2/07-decision-matrix.md
+      - Day 3 - Agents and testing (preview):
+          - M00 Agent fundamentals: AWS-001-AgenticFromScratch/day3/00-agent-fundamentals.md
+          - M01 First agent: AWS-001-AgenticFromScratch/day3/01-first-agent.md
+          - M02 Multi-step reasoning: AWS-001-AgenticFromScratch/day3/02-multi-step.md
+          - M03 Human approval: AWS-001-AgenticFromScratch/day3/03-human-approval.md
+          - M04 Testing agent behaviour: AWS-001-AgenticFromScratch/day3/04-evaluation.md
+          - M05 Deploy the agent: AWS-001-AgenticFromScratch/day3/05-deploy-agent.md
+          - M06 Capstone: AWS-001-AgenticFromScratch/day3/06-capstone.md
+          - M07 Wrap-up: AWS-001-AgenticFromScratch/day3/07-wrap-up.md
+      - Reference:
+          - Authentication options: AWS-001-AgenticFromScratch/docs/auth-options.md
+          - Data dictionary: AWS-001-AgenticFromScratch/docs/data-dictionary.md
+          - Sample queries: AWS-001-AgenticFromScratch/docs/sample-queries.md
+          - "Steering: SQL rules": AWS-001-AgenticFromScratch/kiro/steering/sql-rules.md
+          - "Steering: MCP tool design": AWS-001-AgenticFromScratch/kiro/steering/mcp-tool-design.md
+          - Reference agent: AWS-001-AgenticFromScratch/solutions/agent/index.md
+          - Starter agent: AWS-001-AgenticFromScratch/agent/index.md
+          - Evaluation harness: AWS-001-AgenticFromScratch/evals/index.md

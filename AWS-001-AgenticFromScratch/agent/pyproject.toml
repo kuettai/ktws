@@ -1,0 +1,30 @@
+[project]
+name = "rst-agent-starter"
+version = "1.0.0"
+description = "Starter: restaurant branch analyst agent (Strands Agents). Complete the TODOs in hooks.py"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # Pinned: hooks, interrupts and the MCP client are used directly. strands-agents
+    # 1.57 supports both mcp 1.x and 2.x client lines (it pins mcp<2.2).
+    "strands-agents==1.57.2",
+]
+
+[project.scripts]
+rst-agent = "rst_agent.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.10.5,<0.11.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["tests"]
+
+[tool.uv.build-backend]
+module-name = "rst_agent"

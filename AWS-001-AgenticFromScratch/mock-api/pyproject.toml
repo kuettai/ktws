@@ -1,0 +1,16 @@
+[project]
+name = "rst-mock-ops-api"
+version = "1.0.0"
+description = "Mock Restaurant Operations API (POS / Inventory / Sales) for the MCP workshop"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "httpx>=0.28"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

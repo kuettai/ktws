@@ -1,0 +1,8 @@
+/* Diagrams use the full content width, show a zoom cursor, and fill the screen when opened. */
+.md-typeset .mermaid { cursor: zoom-in; }
+.md-typeset .mermaid:fullscreen {
+  cursor: zoom-out;
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem; background: var(--md-default-bg-color); overflow: auto;
+}
+.md-typeset .mermaid:fullscreen svg { width: 100% !important; max-width: none !important; height: auto; }

@@ -1,0 +1,31 @@
+# Local backends for Day 1. Start: docker compose up -d   (or: finch compose up -d)
+# The MCP server itself runs with uv (stdio) in Modules 01-03, or with --profile http from Module 04.
+services:
+  mock-api:
+    build: ./mock-api
+    ports: ["8080:8080"]
+    environment:
+      MOCK_API_KEY: local-dev-key
+      MOCK_TZ: UTC
+
+  legacy-app:
+    build: ./legacy-app
+    ports: ["8081:8081"]
+    environment:
+      SVC_TKN: legacy-dev-token
+      TZ: UTC
+
+  mcp-server:
+    profiles: ["http"]
+    build: ./mcp-server
+    ports: ["8000:8000"]
+    env_file: ./mcp-server/.env
+    environment:
+      MCP_TRANSPORT: http
+      OPS_API_BASE_URL: http://mock-api:8080
+      PROMO_API_BASE_URL: http://legacy-app:8081
+      AWS_CONFIG_FILE: /aws/config
+      AWS_SHARED_CREDENTIALS_FILE: /aws/credentials
+    volumes:
+      - ~/.aws:/aws:ro   # local AWS credentials for Redshift Data API
+    depends_on: [mock-api, legacy-app]

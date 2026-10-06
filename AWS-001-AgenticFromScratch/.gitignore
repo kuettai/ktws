@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.pytest_cache/
+node_modules/
+cdk.out/
+.env
+data/seed/
+*.js.map
+scripts/rst-preflight-report-*.txt

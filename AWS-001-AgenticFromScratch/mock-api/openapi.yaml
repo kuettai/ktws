@@ -1,0 +1,353 @@
+openapi: 3.0.3
+info:
+  title: Restaurant Operations API (mock)
+  version: 1.0.0
+  description: |
+    Simulates the restaurant chain's existing internal operational systems: POS, Inventory, Sales.
+    Real-time / operational data. Historical analytics live in Redshift.
+
+    Branch IDs and item IDs match the Redshift mock data.
+
+    Used in:
+      - Day 1 M03 Exercise A: Kiro generates MCP tools from this contract.
+      - Day 2 M03: AgentCore Gateway OpenAPI target (zero-code MCP).
+servers:
+  - url: http://mock-api.internal:8080
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /branches:
+    get:
+      operationId: listBranches
+      summary: List all branches
+      tags: [Reference]
+      parameters:
+        - in: query
+          name: region
+          schema: { type: string }
+          description: Filter by region, e.g. "Lakeshore"
+      responses:
+        "200":
+          description: Branch list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Branch" }
+
+  /branches/{branchId}:
+    get:
+      operationId: getBranch
+      summary: Get branch details including today's operating status
+      tags: [Reference]
+      parameters:
+        - $ref: "#/components/parameters/BranchId"
+      responses:
+        "200":
+          description: Branch
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BranchDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /menu/items:
+    get:
+      operationId: listMenuItems
+      summary: List menu items and current availability
+      tags: [Reference]
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+            enum: [chicken, burger, sides, drinks, dessert]
+      responses:
+        "200":
+          description: Menu items
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MenuItem" }
+
+  /pos/{branchId}/orders:
+    get:
+      operationId: listOrders
+      summary: List today's orders at a branch
+      tags: [POS]
+      parameters:
+        - $ref: "#/components/parameters/BranchId"
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [open, preparing, ready, completed, cancelled, refunded]
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Order" }
+
+  /pos/{branchId}/orders/{orderId}:
+    get:
+      operationId: getOrder
+      summary: Get one order with line items
+      tags: [POS]
+      parameters:
+        - $ref: "#/components/parameters/BranchId"
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OrderDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /pos/{branchId}/orders/{orderId}/refund:
+    post:
+      operationId: issueRefund
+      summary: Refund an order (write operation, manager only)
+      description: Used on Day 2 to demonstrate Cedar policy restricting write tools.
+      tags: [POS]
+      parameters:
+        - $ref: "#/components/parameters/BranchId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: { type: string, maxLength: 200 }
+                amount:
+                  type: number
+                  description: Partial refund amount. Omit for full refund.
+      responses:
+        "200":
+          description: Refund issued
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Refund" }
+        "409":
+          description: Order already refunded or not refundable
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /inventory/{branchId}/stock:
+    get:
+      operationId: getStockLevels
+      summary: Current stock levels for all items at a branch
+      tags: [Inventory]
+      parameters:
+        - $ref: "#/components/parameters/BranchId"
+        - in: query
+          name: lowStockOnly
+          schema: { type: boolean, default: false }
+      responses:
+        "200":
+          description: Stock levels
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/StockLevel" }
+
+  /inventory/{branchId}/stock/{itemId}:
+    get:
+      operationId: getItemStock
+      summary: Current stock level for one item at a branch
+      tags: [Inventory]
+      parameters:
+        - $ref: "#/components/parameters/BranchId"
+        - $ref: "#/components/parameters/ItemId"
+      responses:
+        "200":
+          description: Stock level
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StockLevel" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /inventory/transfers:
+    post:
+      operationId: requestStockTransfer
+      summary: Request stock transfer between branches (write operation)
+      tags: [Inventory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [fromBranchId, toBranchId, itemId, qty]
+              properties:
+                fromBranchId: { type: integer }
+                toBranchId: { type: integer }
+                itemId: { type: integer }
+                qty: { type: integer, minimum: 1, maximum: 500 }
+      responses:
+        "201":
+          description: Transfer requested
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Transfer" }
+
+  /sales/{branchId}/today:
+    get:
+      operationId: getTodaySales
+      summary: Live sales summary for today at a branch
+      tags: [Sales]
+      parameters:
+        - $ref: "#/components/parameters/BranchId"
+      responses:
+        "200":
+          description: Today's sales
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SalesSummary" }
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  parameters:
+    BranchId:
+      in: path
+      name: branchId
+      required: true
+      schema: { type: integer, minimum: 1 }
+    OrderId:
+      in: path
+      name: orderId
+      required: true
+      schema: { type: integer, format: int64 }
+    ItemId:
+      in: path
+      name: itemId
+      required: true
+      schema: { type: integer, minimum: 1 }
+
+  responses:
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Branch:
+      type: object
+      properties:
+        branchId: { type: integer }
+        name: { type: string }
+        region: { type: string }
+        format: { type: string, enum: [mall, street, drive_thru, kiosk] }
+
+    BranchDetail:
+      allOf:
+        - $ref: "#/components/schemas/Branch"
+        - type: object
+          properties:
+            isOpen: { type: boolean }
+            openTime: { type: string, example: "07:00" }
+            closeTime: { type: string, example: "23:00" }
+            managerName: { type: string }
+            phone: { type: string }
+
+    MenuItem:
+      type: object
+      properties:
+        itemId: { type: integer }
+        name: { type: string }
+        category: { type: string }
+        price: { type: number }
+        available: { type: boolean }
+
+    Order:
+      type: object
+      properties:
+        orderId: { type: integer, format: int64 }
+        branchId: { type: integer }
+        createdAt: { type: string, format: date-time }
+        channel: { type: string, enum: [dine_in, takeaway, drive_thru, delivery] }
+        status: { type: string }
+        totalAmount: { type: number }
+
+    OrderDetail:
+      allOf:
+        - $ref: "#/components/schemas/Order"
+        - type: object
+          properties:
+            lines:
+              type: array
+              items:
+                type: object
+                properties:
+                  itemId: { type: integer }
+                  name: { type: string }
+                  qty: { type: integer }
+                  unitPrice: { type: number }
+                  discount: { type: number }
+
+    Refund:
+      type: object
+      properties:
+        refundId: { type: string }
+        orderId: { type: integer, format: int64 }
+        amount: { type: number }
+        reason: { type: string }
+        issuedAt: { type: string, format: date-time }
+
+    StockLevel:
+      type: object
+      properties:
+        branchId: { type: integer }
+        itemId: { type: integer }
+        itemName: { type: string }
+        onHand: { type: integer }
+        parLevel: { type: integer }
+        isLowStock: { type: boolean, description: "onHand below 25% of parLevel" }
+        lastUpdated: { type: string, format: date-time }
+
+    Transfer:
+      type: object
+      properties:
+        transferId: { type: string }
+        status: { type: string, enum: [requested, approved, in_transit, received] }
+        fromBranchId: { type: integer }
+        toBranchId: { type: integer }
+        itemId: { type: integer }
+        qty: { type: integer }
+
+    SalesSummary:
+      type: object
+      properties:
+        branchId: { type: integer }
+        businessDate: { type: string, format: date }
+        orderCount: { type: integer }
+        revenue: { type: number }
+        avgTicket: { type: number }
+        byChannel:
+          type: object
+          additionalProperties: { type: number }
+        asOf: { type: string, format: date-time }
+
+    Error:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }

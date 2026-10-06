@@ -1,0 +1,6 @@
+_site/
+_site_src/
+.claude/
+.DS_Store
+__pycache__/
+.venv/

@@ -1,0 +1,54 @@
+{
+  "mcpServers": {
+    "rst-local": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "mcp-server",
+        "python",
+        "server.py"
+      ],
+      "env": {
+        "AWS_PROFILE": "workshop",
+        "AWS_REGION": "us-east-1",
+        "REDSHIFT_WORKGROUP": "rst-workshop",
+        "REDSHIFT_DATABASE": "dev",
+        "OPS_API_BASE_URL": "http://localhost:8080",
+        "OPS_API_KEY": "local-dev-key",
+        "PROMO_API_BASE_URL": "http://localhost:8081",
+        "PROMO_API_TOKEN": "legacy-dev-token",
+        "LOCAL_ROLE": "hq"
+      },
+      "disabled": false,
+      "autoApprove": []
+    },
+    "rst-remote-ecs": {
+      "url": "https://<distribution-id>.cloudfront.net/mcp",
+      "oauth": {
+        "clientId": "<kiro-user client id>",
+        "redirectUri": "http://localhost:7778/oauth/callback",
+        "oauthScopes": [
+          "openid",
+          "https://<distribution-id>.cloudfront.net/mcp/read"
+        ]
+      },
+      "disabled": true,
+      "_comment": "Kiro sends the server URL as the OAuth 'resource', so the scope must be '<McpUrl>/read' (RstAuthStack output ReadScope, deployed with -c mcpResourceUrl=<McpUrl>)."
+    },
+    "rst-remote-ecs-token": {
+      "url": "https://<distribution-id>.cloudfront.net/mcp",
+      "headers": {
+        "Authorization": "Bearer ${RST_MCP_TOKEN}"
+      },
+      "disabled": true
+    },
+    "rst-agentcore-gateway": {
+      "url": "https://<gateway-id>.gateway.bedrock-agentcore.<region>.amazonaws.com/mcp",
+      "headers": {
+        "Authorization": "Bearer ${RST_GATEWAY_TOKEN}"
+      },
+      "disabled": true
+    }
+  }
+}

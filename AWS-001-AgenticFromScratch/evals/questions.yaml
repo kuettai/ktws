@@ -1,0 +1,286 @@
+# restaurant agent evaluation set (Day 3, Lab 4).
+#
+# Each question says which tools a good agent should call and what the right answer is.
+# score.py compares a run against this file: tool choice, parameters, answer.
+#
+# Dates are placeholders, filled in from the data's last day (SEED_END_DATE, default 2026-09-30):
+#   {end}          last day of data            e.g. 2026-09-30
+#   {week_start}   6 days before {end}         e.g. 2026-09-24
+#   {month_start}  first day of the last full calendar month in the data   e.g. 2026-09-01
+#   {month_end}    last day of that month      e.g. 2026-09-30
+#   {month_label}  that month as words         e.g. September 2026
+#
+# Expected answers:
+#   expected_answer      a fixed value (true for any seed)
+#   ground_truth_sql     a query against the mcp views; first column of the first row is the answer.
+#                        compute_ground_truth.py runs it once per workshop account (the data
+#                        depends on the seed), writes ground_truth.json, and run/score use that.
+#   ground_truth_http    a GET on the mock Operations API: {path, field}. Live data, so start
+#                        mock-api with a fixed MOCK_NOW for repeatable answers.
+#
+# Fields:
+#   persona         who is asking (see personas). Local runs simulate them with LOCAL_ROLE/LOCAL_BRANCH_ID
+#   expected_tools  tools a good agent calls. "a|b" means either is fine
+#   tool_match      exact   - the agent calls these tools and no others (except allow_extra)
+#                   subset  - the agent calls at least these; extra calls are fine
+#                   ordered - the agent calls these in this order; extra calls are fine
+#   allow_extra     tools that may be called without failing an "exact" match
+#   must_not_call   tools that must never be called
+#   expected_params {tool: {param: value}}. Checked on the first call to that tool.
+#                   A string starting with "~" matches if the value contains it (any case)
+#   answer_type     number  - a number in the answer is within tolerance of the expected value
+#                   hour    - the answer names the expected hour of day (13, 13:00, 1 pm ...)
+#                   text    - the answer mentions the expected value and every must_mention
+#                   refusal - the answer says it can't (or can only partly) do it, and mentions must_mention
+#                   clarify - the agent asks a question back instead of guessing
+#                   approval- a person was asked to approve the write tool; the run declines it,
+#                             so the answer must say it was not done
+#                   any     - only tools are scored
+#   tolerance_pct / tolerance_abs   for number answers. Default 1% relative
+
+defaults:
+  tool_match: exact
+  allow_extra: [find_branch, who_am_i]
+  tolerance_pct: 1.0
+
+personas:
+  hq:                { role: hq }
+  manager_branch_12: { role: manager, branch_id: 12 }
+  manager_branch_5:  { role: manager, branch_id: 5 }
+  staff_branch_12:   { role: staff, branch_id: 12 }
+
+questions:
+
+  # ---- One Redshift tool -----------------------------------------------------------------
+
+  - id: q01
+    category: redshift
+    persona: hq
+    question: "What was the total revenue at branch 12 from {week_start} to {end}?"
+    expected_tools: [get_daily_branch_sales]
+    expected_params:
+      get_daily_branch_sales: { branch_id: 12, start_date: "{week_start}", end_date: "{end}" }
+    answer_type: number
+    ground_truth_sql: |
+      SELECT SUM(revenue) FROM mcp.v_daily_branch_sales
+      WHERE branch_id = 12 AND cal_date BETWEEN '{week_start}' AND '{end}'
+
+  - id: q02
+    category: redshift
+    persona: hq
+    question: "Which branch had the highest revenue in {month_label}?"
+    expected_tools: [get_top_branches]
+    expected_params:
+      get_top_branches: { start_date: "{month_start}", end_date: "{month_end}" }
+    answer_type: text
+    ground_truth_sql: |
+      SELECT branch_name FROM mcp.v_daily_branch_sales
+      WHERE cal_date BETWEEN '{month_start}' AND '{month_end}'
+      GROUP BY branch_name ORDER BY SUM(revenue) DESC LIMIT 1
+
+  - id: q03
+    category: redshift
+    persona: manager_branch_12
+    question: "What were my top 3 best-selling items in {month_label}?"
+    expected_tools: [get_top_items]
+    expected_params:
+      get_top_items: { branch_id: 12, start_date: "{month_start}", end_date: "{month_end}", top_n: 3 }
+    answer_type: text
+    ground_truth_sql: |
+      SELECT item_name FROM mcp.v_item_sales_daily
+      WHERE branch_id = 12 AND cal_date BETWEEN '{month_start}' AND '{month_end}'
+      GROUP BY item_name ORDER BY SUM(qty_sold) DESC LIMIT 1
+
+  - id: q04
+    category: redshift
+    persona: hq
+    question: "What is the busiest hour on weekends at Branch Westgate in {month_label}?"
+    expected_tools: [find_branch, get_peak_hours]
+    tool_match: ordered
+    expected_params:
+      get_peak_hours: { branch_id: 7, day_type: weekend, start_date: "{month_start}", end_date: "{month_end}" }
+    answer_type: hour
+    ground_truth_sql: |
+      SELECT h.order_hour FROM mcp.v_hourly_sales h
+      JOIN mcp.v_daily_branch_sales d ON d.branch_id = h.branch_id AND d.cal_date = h.cal_date
+      WHERE h.branch_id = 7 AND d.is_weekend
+        AND h.cal_date BETWEEN '{month_start}' AND '{month_end}'
+      GROUP BY h.order_hour ORDER BY AVG(h.order_count) DESC LIMIT 1
+
+  - id: q05
+    category: redshift
+    persona: hq
+    question: "What percentage of branch 5's orders came through delivery in {month_label}?"
+    expected_tools: [get_channel_mix]
+    expected_params:
+      get_channel_mix: { branch_id: 5, start_date: "{month_start}", end_date: "{month_end}" }
+    answer_type: number
+    tolerance_abs: 1.0          # percentage points
+    ground_truth_sql: |
+      SELECT 100.0 * SUM(CASE WHEN channel = 'delivery' THEN order_count ELSE 0 END) / SUM(order_count)
+      FROM mcp.v_channel_mix_daily
+      WHERE branch_id = 5 AND cal_date BETWEEN '{month_start}' AND '{month_end}'
+
+  - id: q06
+    category: redshift
+    persona: manager_branch_12
+    question: "What was the value of chicken wasted at my branch in {month_label}?"
+    expected_tools: [get_waste_by_item]
+    expected_params:
+      get_waste_by_item: { branch_id: 12, category: chicken, start_date: "{month_start}", end_date: "{month_end}" }
+    answer_type: number
+    ground_truth_sql: |
+      SELECT SUM(waste_value) FROM mcp.v_inventory_daily
+      WHERE branch_id = 12 AND category = 'chicken'
+        AND cal_date BETWEEN '{month_start}' AND '{month_end}'
+
+  - id: q07
+    category: redshift
+    persona: hq
+    question: "At branch 3 in {month_label}, what was the average daily revenue on weekends compared with weekdays?"
+    expected_tools: [compare_weekend_weekday]
+    expected_params:
+      compare_weekend_weekday: { branch_id: 3, start_date: "{month_start}", end_date: "{month_end}" }
+    answer_type: number         # the weekend figure must appear in the answer
+    ground_truth_sql: |
+      SELECT AVG(revenue) FROM mcp.v_daily_branch_sales
+      WHERE branch_id = 3 AND is_weekend
+        AND cal_date BETWEEN '{month_start}' AND '{month_end}'
+
+  - id: q08
+    category: redshift
+    persona: hq
+    question: "What is the branch ID of Branch Hillcrest?"
+    expected_tools: [find_branch]
+    expected_params:
+      find_branch: { name_fragment: "~hillcrest" }     # "~" = contains, any case
+    answer_type: number
+    expected_answer: 11
+    tolerance_abs: 0
+
+  # ---- One Operations API tool (live, today) ---------------------------------------------
+
+  - id: q09
+    category: ops
+    persona: manager_branch_12
+    question: "Which items are low on stock at my branch right now?"
+    expected_tools: [list_low_stock_items|get_current_stock]
+    expected_params:
+      list_low_stock_items: { branch_id: 12 }
+    answer_type: text
+    must_mention: ["Original Chicken", "Spicy Chicken 2pc"]    # forced low in the mock API
+
+  - id: q10
+    category: ops
+    persona: hq
+    question: "How many Spicy Chicken Burgers does branch 3 have in stock right now?"
+    expected_tools: [get_current_stock]
+    expected_params:
+      get_current_stock: { branch_id: 3 }
+    answer_type: number
+    tolerance_abs: 0
+    ground_truth_http: { path: /inventory/3/stock/7, field: onHand }
+
+  - id: q11
+    category: ops
+    persona: manager_branch_12
+    question: "How much revenue has my branch made so far today?"
+    expected_tools: [get_today_sales]
+    expected_params:
+      get_today_sales: { branch_id: 12 }
+    answer_type: number
+    ground_truth_http: { path: /sales/12/today, field: revenue }
+
+  # ---- Several steps -----------------------------------------------------------------------
+
+  - id: q12
+    category: multi_step
+    persona: manager_branch_12
+    question: "What were my best-selling items in {month_label}? Am I low on any of them right now?"
+    expected_tools: [get_top_items, list_low_stock_items|get_current_stock]
+    tool_match: subset
+    expected_params:
+      get_top_items: { branch_id: 12, start_date: "{month_start}", end_date: "{month_end}" }
+    answer_type: text
+    ground_truth_sql: |
+      SELECT item_name FROM mcp.v_item_sales_daily
+      WHERE branch_id = 12 AND cal_date BETWEEN '{month_start}' AND '{month_end}'
+      GROUP BY item_name ORDER BY SUM(qty_sold) DESC LIMIT 1
+
+  - id: q13
+    category: multi_step
+    persona: hq
+    question: "Branch 12 says it is low on chicken right now. Check that, and tell me how much chicken it wasted in {month_label} in value."
+    expected_tools: [list_low_stock_items|get_current_stock, get_waste_by_item]
+    tool_match: subset
+    expected_params:
+      get_waste_by_item: { branch_id: 12, category: chicken, start_date: "{month_start}", end_date: "{month_end}" }
+    answer_type: number
+    ground_truth_sql: |
+      SELECT SUM(waste_value) FROM mcp.v_inventory_daily
+      WHERE branch_id = 12 AND category = 'chicken'
+        AND cal_date BETWEEN '{month_start}' AND '{month_end}'
+
+  - id: q14
+    category: multi_step
+    persona: hq
+    question: "Which branch had the highest revenue in {month_label}, and what percentage of its orders were delivery?"
+    expected_tools: [get_top_branches, get_channel_mix]
+    tool_match: ordered
+    expected_params:
+      get_top_branches: { start_date: "{month_start}", end_date: "{month_end}" }
+    answer_type: number
+    tolerance_abs: 1.0
+    ground_truth_sql: |
+      WITH top AS (
+        SELECT branch_id FROM mcp.v_daily_branch_sales
+        WHERE cal_date BETWEEN '{month_start}' AND '{month_end}'
+        GROUP BY branch_id ORDER BY SUM(revenue) DESC LIMIT 1
+      )
+      SELECT 100.0 * SUM(CASE WHEN channel = 'delivery' THEN order_count ELSE 0 END) / SUM(order_count)
+      FROM mcp.v_channel_mix_daily
+      WHERE branch_id = (SELECT branch_id FROM top)
+        AND cal_date BETWEEN '{month_start}' AND '{month_end}'
+
+  # ---- Identity and scope ------------------------------------------------------------------
+
+  - id: q15
+    category: scope
+    persona: manager_branch_12
+    question: "Show me branch 5's revenue from {week_start} to {end}."
+    expected_tools: [get_daily_branch_sales]
+    tool_match: subset
+    answer_type: refusal        # the server only returns branch 12; the agent must say so
+    must_mention: ["12"]
+
+  # ---- Actions that change data (a person must approve) ------------------------------------
+
+  - id: q16
+    category: write
+    persona: manager_branch_12
+    question: "Refund order 1001 at my branch. The customer's food was cold."
+    expected_tools: [issue_refund]
+    tool_match: subset
+    expected_params:
+      issue_refund: { branch_id: 12, order_id: 1001 }
+    answer_type: approval
+
+  - id: q17
+    category: write
+    persona: manager_branch_12
+    question: "Transfer 20 portions of Original Chicken 2pc from my branch to branch 5."
+    expected_tools: [request_stock_transfer]
+    tool_match: subset
+    expected_params:
+      request_stock_transfer: { from_branch_id: 12, to_branch_id: 5, item_id: 1, qty: 20 }
+    answer_type: approval
+
+  # ---- Unclear request ---------------------------------------------------------------------
+
+  - id: q18
+    category: clarify
+    persona: hq
+    question: "How are sales?"
+    expected_tools: []
+    must_not_call: [issue_refund, request_stock_transfer]
+    answer_type: clarify

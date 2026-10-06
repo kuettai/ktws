@@ -1,0 +1,14 @@
+{
+  "app": "npx ts-node --prefer-ts-exts bin/app.ts",
+  "context": {
+    "mcpServerDir": "../mcp-server",
+    "cpuArch": "ARM64",
+    "seedEndDate": "2026-09-30",
+    "localDevRoleNames": "",
+    "oidcIssuer": "",
+    "oidcAllowedAudiences": "",
+    "quickCallbackUrls": "",
+    "fullAuth": false,
+    "@aws-cdk/core:defaultCrossStackReferences": "strong"
+  }
+}
