@@ -19,8 +19,11 @@
     ```
     and a `/health` route for the load balancer.
 
-2. Run over HTTP: `MCP_TRANSPORT=http uv run python server.py` (PowerShell: `$env:MCP_TRANSPORT = "http"; uv run python server.py`, then `Remove-Item Env:MCP_TRANSPORT` to go back to stdio)
-3. Test: Inspector → transport "Streamable HTTP" → `http://localhost:8000/mcp`.
+2. Run over HTTP, from the `mcp-server` folder, and leave this terminal running: `MCP_TRANSPORT=http uv run python server.py` (PowerShell: `$env:MCP_TRANSPORT = "http"; uv run python server.py`, then `Remove-Item Env:MCP_TRANSPORT` to go back to stdio). The log ends with `Uvicorn running on http://0.0.0.0:8000`.
+
+    Quick check in a browser: `http://localhost:8000/health` shows `{"status":"ok"}`. Opening `http://localhost:8000/mcp` in a browser shows an error, `Not Acceptable: Client must accept text/event-stream`: that is **normal**. The server is up, but a browser is not an MCP client.
+
+3. Test with a real MCP client. In a **second** terminal, start Inspector on its own: `npx @modelcontextprotocol/inspector` (no server command this time, because the server is already running). In the Inspector page set **Transport Type** to **Streamable HTTP** and **URL** to `http://localhost:8000/mcp`, then **Connect**. Your tools appear on the Tools tab and calls work as in M01.
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` MCP Inspector with transport Streamable HTTP and URL `http://localhost:8000/mcp` · save as `img/m04-inspector-http.png`
 
