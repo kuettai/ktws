@@ -86,7 +86,7 @@ Open full size: [PNG](img/diagrams/02-redshift-tools-2.png) · [SVG](img/diagram
 
     Review checklist: parameters via `:name`? `mcp.` schema only? date range validated? description follows `mcp-tool-design.md`?
 
-4. **Analysts build 2 more (30m).** First `find_branch`, then one of your choice. Paste each prompt into the Kiro chat panel, review the change with the checklist, and test it in Inspector.
+4. **Analysts build 2 more (30m).** First `find_branch`, then one of your choice. (Behind? See [Shortcut: use the finished tools](#shortcut-use-the-finished-tools).) Paste each prompt into the Kiro chat panel, review the change with the checklist, and test it in Inspector.
 
     > Create an MCP tool `find_branch` in `mcp-server/tools/redshift_tools.py` using pattern 8 in `docs/sample-queries.md`. It takes `name_fragment` (part of a branch name, e.g. "bayside") and returns matching branches with their branch_id, so other tools can be called with an ID. Follow the steering rules and `mcp-tool-design.md`: bind parameters, a LIMIT, and a description that says when to use it.
 
@@ -110,6 +110,30 @@ Open full size: [PNG](img/diagrams/02-redshift-tools-2.png) · [SVG](img/diagram
     - Temporarily remove steering, ask again; Kiro writes it. Run it: DB grants reject (`permission denied`). Lesson: steering guides, grants enforce.
     - Ask Quick-style question in Kiro chat: "Which branch had the worst waste in August?" Observe tool chaining.
 6. **Own query (optional, fast finishers or homework).** Analysts bring one of their real weekly report queries; write as new pattern → tool.
+
+## Shortcut: use the finished tools
+
+Behind, or the instructor is walking through instead of building live? Use the reference Redshift tools. From the workshop folder (the first line keeps a copy of your own file, if you have one):
+
+```bash
+[ -f mcp-server/tools/redshift_tools.py ] && cp mcp-server/tools/redshift_tools.py mcp-server/tools/redshift_tools.mine.py
+cp solutions/mcp-server/tools/redshift_tools.py mcp-server/tools/
+cp solutions/mcp-server/lib/scoping.py mcp-server/lib/
+```
+
+```powershell
+if (Test-Path mcp-server\tools\redshift_tools.py) { Copy-Item mcp-server\tools\redshift_tools.py mcp-server\tools\redshift_tools.mine.py }
+Copy-Item solutions\mcp-server\tools\redshift_tools.py mcp-server\tools\
+Copy-Item solutions\mcp-server\lib\scoping.py mcp-server\lib\
+```
+
+If `mcp-server/server.py` still has the line `# Module 02: import tools.redshift_tools`, replace it with:
+
+```python
+import tools.redshift_tools  # noqa: F401
+```
+
+You get all eight Redshift tools (`get_daily_branch_sales`, `get_top_branches`, `get_top_items`, `get_peak_hours`, `get_channel_mix`, `get_waste_by_item`, `compare_weekend_weekday`, `find_branch`). Test them in Inspector, reconnect `rst-local` in Kiro, and run the checkpoint check below. `lib/scoping.py` (the branch limit, built in M06 Part E) comes along because these tools use it.
 
 ## Checkpoint
 `get_daily_branch_sales`, `find_branch`, plus 1 more tool pass Inspector and the review checklist ([primer checklist](../prework/python-reading-primer.md#checklist-reviewing-kiros-code)). Then run the automatic check, which finds every tool in `tools/redshift_tools.py` and checks its SQL (`mcp.` views only, bind parameters, a `LIMIT`, no `SELECT *`), with no AWS needed:
