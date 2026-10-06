@@ -52,3 +52,13 @@ flowchart LR
 ```
 
 Open full size: [PNG](img/diagrams/04-go-remote-1.png) · [SVG](img/diagrams/04-go-remote-1.svg)
+
+**Why stateless:** the load balancer may send each request to a different task. With `stateless_http=True` no task keeps session state, so any task can answer any request and no sticky sessions are needed.
+
+## Key concepts
+- **Stateless:** each request independent → any ECS task can serve it, no sticky sessions. AgentCore Runtime (Day 2) also expects this.
+- **JSON responses:** no long-lived SSE streams, which keeps ALB and CloudFront simple.
+- **No auth yet:** anyone who can reach port 8000 can query Redshift. Fixed in M06.
+
+## Checkpoint
+HTTP server answers tool calls from Inspector and Kiro.

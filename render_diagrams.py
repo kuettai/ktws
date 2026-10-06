@@ -33,7 +33,8 @@ SKIP_DIRS = {".venv", "node_modules", "cdk.out", "_site", "_site_src"}
 SCALE = 2          # PNG pixel density
 PAD = 24           # white margin around the diagram, in CSS pixels
 
-BLOCK = re.compile(r"^( *)```mermaid\n(.*?)^\1```\n(?:\n?\1Open full size: .*\n)?", re.M | re.S)
+# The optional link line uses [^\n]*, not .*: with re.S, .* would also match the rest of the file.
+BLOCK = re.compile(r"^( *)```mermaid\n(.*?)^\1```\n(?:\n?\1Open full size: [^\n]*\n)?", re.M | re.S)
 
 
 def mermaid_js() -> Path:

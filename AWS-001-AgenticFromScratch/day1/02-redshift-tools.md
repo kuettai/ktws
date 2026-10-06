@@ -19,7 +19,7 @@ Four layers stand between a question and the data. Each one catches what the one
 
 ```mermaid
 flowchart LR
-    A["1. Steering files<br/>guide what SQL Kiro writes"] --> B["2. Your review<br/>checklist before merging"]
+    A["1. Steering files<br/>guide what SQL Kiro writes"] --> B["2. You review Kiro's change<br/>with the checklist<br/>before accepting it"]
     B --> C["3. Validation at run time<br/>date_range, bounded_int,<br/>:name bind parameters"]
     C --> D["4. Database grants<br/>mcp_reader reads mcp views only"]
     D --> E[("Redshift")]
@@ -28,6 +28,17 @@ flowchart LR
 ```
 
 Open full size: [PNG](img/diagrams/02-redshift-tools-1.png) · [SVG](img/diagrams/02-redshift-tools-1.svg)
+
+| Layer | What it does | Where it lives |
+|---|---|---|
+| 1. Steering | Rules Kiro follows when it writes SQL: `mcp` views only, `:name` parameters, a `LIMIT`, no `SELECT *` | [`kiro/steering/sql-rules.md`](../kiro/steering/sql-rules.md), copied to `.kiro/steering/` in M01 |
+| 2. Your review | When Kiro proposes a change, you read it and accept it only if it passes the checklist | [Review checklist](../prework/python-reading-primer.md#checklist-reviewing-kiros-code) |
+| 3. Validation | Before any SQL runs, the tool checks its inputs (real dates, numbers in range) and sends values as bind parameters, never pasted into the SQL | `mcp-server/lib/validation.py`, `:name` parameters in each tool |
+| 4. Database grants | Redshift itself refuses anything beyond reading the `mcp` views | [`data/grants.sql`](../data/grants.sql), applied by the account setup |
+
+**How the database enforces layer 4.** The account setup creates a database role, `mcp_reader`, that may only `SELECT` from the `mcp` views: no base tables (`rst`), and no `INSERT`, `UPDATE`, `DELETE` or `DROP` anywhere. It then maps two AWS roles to it: the MCP server's role on ECS (`rst-mcp-task-<region>`) and the role you use on your laptop (`localDevRoleNames` in Prerequisites). When the server queries Redshift through the Data API, there is no database password: Redshift sees the caller as the database user `IAMR:<role name>` and gives it only `mcp_reader`'s rights. So even if bad SQL slipped past layers 1–3, a `DELETE` or a read of a base table fails with **permission denied**. Step 5 below shows it.
+
+Layers 1 and 2 *guide*: they can be skipped or missed. Layer 4 *enforces*: no code can talk its way past it.
 
 ## What happens when a tool runs
 
