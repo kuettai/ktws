@@ -61,6 +61,8 @@
     }
     ```
 
+    A URL entry needs no `"env"` block: Kiro only connects, it doesn't start this server. The server's settings come from where it runs, here `mcp-server/.env` (so set `AWS_PROFILE` there, then recreate the container with `--force-recreate`).
+
     In Kiro's MCP panel `rst-local-http` should show as connected (choose retry if not). In Kiro chat, ask *"Call ping with my name"*: Kiro now talks to the server in the container over HTTP instead of starting it itself. To go back to stdio later, flip the two `disabled` values back.
 
 ## stdio vs Streamable HTTP
