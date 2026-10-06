@@ -95,7 +95,7 @@ def check_software():
         return v
 
     tool("uv (Python package manager)", ["uv", "--version"], hint="https://docs.astral.sh/uv/")
-    tool("Node.js 20+", ["node", "--version"], minimum=(20, 0), hint="https://nodejs.org")
+    tool("Node.js 22.19+", ["node", "--version"], minimum=(22, 19), hint="MCP Inspector needs 22.19 or newer: https://nodejs.org")
     tool("npm / npx", ["npx", "--version"], hint="comes with Node.js")
     tool("Git", ["git", "--version"])
     aws_v = tool("AWS CLI v2", ["aws", "--version"], minimum=(2, 0),

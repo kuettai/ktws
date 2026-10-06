@@ -21,9 +21,19 @@
 
 2. Run over HTTP, from the `mcp-server` folder, and leave this terminal running: `MCP_TRANSPORT=http uv run python server.py` (PowerShell: `$env:MCP_TRANSPORT = "http"; uv run python server.py`, then `Remove-Item Env:MCP_TRANSPORT` to go back to stdio). The log ends with `Uvicorn running on http://0.0.0.0:8000`.
 
-    Quick check in a browser: `http://localhost:8000/health` shows `{"status":"ok"}`. Opening `http://localhost:8000/mcp` in a browser shows an error, `Not Acceptable: Client must accept text/event-stream`: that is **normal**. The server is up, but a browser is not an MCP client.
+    Quick check in a browser: `http://localhost:8000/health` shows `{"status":"ok"}`. Opening `http://localhost:8000/mcp` in a browser is not a real test, because a browser is not an MCP client. Depending on the browser you see either a stream of `: ping - <time>` lines, one every 15 seconds (the server keeping a connection open for messages it might push), or `Not Acceptable: Client must accept text/event-stream`. Both are **normal**: the server is up.
 
-3. Test with a real MCP client. In a **second** terminal, start Inspector on its own: `npx @modelcontextprotocol/inspector` (no server command this time, because the server is already running). In the Inspector page set **Transport Type** to **Streamable HTTP** and **URL** to `http://localhost:8000/mcp`, then **Connect**. Your tools appear on the Tools tab and calls work as in M01.
+3. Test with a real MCP client. In a **second** terminal (the server keeps running in the first), point Inspector at the server's URL:
+
+    ```bash
+    npx @modelcontextprotocol/inspector --server-url http://localhost:8000/mcp --transport http
+    ```
+
+    ```powershell
+    npx @modelcontextprotocol/inspector --server-url http://localhost:8000/mcp --transport http
+    ```
+
+    It opens the Inspector page connected to your server: your tools appear on the Tools tab and calls work as in M01. Started without `--server-url`, Inspector shows its own sample servers instead (`filesystem-server-default`, `everything-server-default`, `example-server-default`); you can ignore those.
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` MCP Inspector with transport Streamable HTTP and URL `http://localhost:8000/mcp` · save as `img/m04-inspector-http.png`
 
