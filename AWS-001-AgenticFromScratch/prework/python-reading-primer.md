@@ -100,6 +100,20 @@ def ping(name: str) -> str:
 Review tip: when Kiro says "I added a tool", check for `@mcp.tool()`. When it adds a helper that
 should *not* be visible to the model, check there is **no** decorator.
 
+### Other decorators you will see
+
+`@mcp.tool()` is one of four. Each exposes a function to a different audience:
+
+| Decorator | Who uses it | In this workshop |
+|---|---|---|
+| `@mcp.tool()` | **The model** calls it as an action ("get sales for branch 12") | All Redshift, Ops API and Promotions tools |
+| `@mcp.resource("rst://...")` | **The client** (Kiro, Quick) reads it as context; the model doesn't call it | `rst://data-dictionary` in `tools/context.py` (you open it in Day 1 M01) |
+| `@mcp.prompt()` | **The user** picks it as a ready-made prompt template | Not used; mentioned in Day 1 M00 |
+| `@mcp.custom_route("/health")` | **Anything outside MCP**: a plain web address, not part of the protocol. The model and clients never see it | `/health` in `server.py`, which the ECS load balancer calls to check the server is up |
+
+`server.py` imports `Request` and `JSONResponse` from `starlette` for that `/health` route.
+Starlette is the small web framework the MCP SDK uses for HTTP; it comes with the SDK.
+
 ### Modules and imports
 
 Each `.py` file is a **module**. `import` brings in code from another file or library. From
