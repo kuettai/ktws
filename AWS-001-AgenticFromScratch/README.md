@@ -73,13 +73,14 @@ docker-compose.yml          Local mock-api + legacy-app (+ mcp-server with --pro
 ## Tests
 
 ```bash
-cd mcp-server && uv run pytest               # starter: helpers + auth over HTTP
-cd solutions/mcp-server && uv run pytest     # reference: SQL rules, scoping, auth over HTTP, write tools
-cd mock-api && uv run pytest
-cd legacy-app && TZ=UTC npm test
-cd solutions/agent && uv run pytest          # agent, recorder, approval hook (scripted model, no AWS)
-cd evals && uv run pytest                    # scoring
-cd infra && npx cdk synth                    # needs CDK_DEFAULT_ACCOUNT / CDK_DEFAULT_REGION
+# from the workshop folder; each ( ... ) returns to it
+(cd mcp-server && uv run pytest)             # starter: helpers + auth over HTTP
+(cd solutions/mcp-server && uv run pytest)   # reference: SQL rules, scoping, auth over HTTP, write tools
+(cd mock-api && uv run pytest)
+(cd legacy-app && TZ=UTC npm test)
+(cd solutions/agent && uv run pytest)        # agent, recorder, approval hook (scripted model, no AWS)
+(cd evals && uv run pytest)                  # scoring
+(cd infra && npx cdk synth)                  # needs CDK_DEFAULT_ACCOUNT / CDK_DEFAULT_REGION
 ```
 
 ```powershell
@@ -93,7 +94,7 @@ Push-Location evals; uv run pytest; Pop-Location                    # scoring
 Push-Location infra; npx cdk synth; Pop-Location                    # needs CDK_DEFAULT_ACCOUNT / CDK_DEFAULT_REGION
 ```
 
-`cd agent && uv run pytest` (PowerShell: `cd agent; uv run pytest`) fails on purpose until the Day 3 Lab 1 and Lab 3 TODOs are done.
+`(cd agent && uv run pytest)` (PowerShell: `Push-Location agent; uv run pytest; Pop-Location`) fails on purpose until the Day 3 Lab 1 and Lab 3 TODOs are done.
 
 ## Costs and safety
 

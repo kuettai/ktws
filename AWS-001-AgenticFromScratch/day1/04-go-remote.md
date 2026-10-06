@@ -24,7 +24,7 @@
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` MCP Inspector with transport Streamable HTTP and URL `http://localhost:8000/mcp` · save as `img/m04-inspector-http.png`
 
-4. Container (needs Docker or Finch), from repo root:
+4. Container (needs Docker or Finch), from the workshop folder:
 
     ```bash
     docker compose --profile http up --build

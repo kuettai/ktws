@@ -17,13 +17,13 @@
 1. **Set up (10m).**
 
     ```bash
-    docker compose up -d                       # repo root: mock Ops API + Promotions service
+    docker compose up -d                       # workshop folder: mock Ops API + Promotions service
     cd agent && uv sync
     uv run pytest tests/test_lab1_recorder.py  # fails now: that is the TODO
     ```
 
     ```powershell
-    docker compose up -d                       # repo root: mock Ops API + Promotions service
+    docker compose up -d                       # workshop folder: mock Ops API + Promotions service
     cd agent; uv sync
     uv run pytest tests/test_lab1_recorder.py  # fails now: that is the TODO
     ```

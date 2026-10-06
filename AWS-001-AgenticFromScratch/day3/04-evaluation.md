@@ -42,7 +42,7 @@ Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full 
 4. **Compute expected answers (10m).** Live questions read the mock API, so pin its clock first:
 
     ```bash
-    cd ..                                           # repo root
+    cd ..                                           # back to the workshop folder
     docker compose stop mock-api                    # if it is running in Docker
     (cd mock-api && MOCK_NOW=2026-10-01T14:30:00 MOCK_API_KEY=local-dev-key \
         uv run uvicorn app.main:app --port 8080 &)
@@ -54,7 +54,7 @@ Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full 
     ```
 
     ```powershell
-    cd ..                                           # repo root
+    cd ..                                           # back to the workshop folder
     docker compose stop mock-api                    # if it is running in Docker
     $env:MOCK_NOW = "2026-10-01T14:30:00"; $env:MOCK_API_KEY = "local-dev-key"
     Start-Process -NoNewWindow -WorkingDirectory mock-api -FilePath uv `
