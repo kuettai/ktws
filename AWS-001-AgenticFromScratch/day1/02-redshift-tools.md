@@ -11,7 +11,7 @@ Centrepiece module for analysts: SQL they know → MCP tools they own.
 ## Pre-built
 - `lib/redshift.py`: `run_query(sql, params)` — Redshift Data API `execute_statement` → poll → `get_statement_result`, returns a list of dicts. Failures raise `QueryError` (generic message to the model, details to the log).
 - `lib/validation.py`: `date_range`, `bounded_int`, `one_of`. Raise `ToolInputError`, whose message the model sees so it can fix the call. Any other exception reaches the model only as "Error executing tool X".
-- Steering files active (M01 step 6). Reference answers: `solutions/mcp-server/tools/redshift_tools.py`.
+- Steering files active (M01 step 4). Reference answers: `solutions/mcp-server/tools/redshift_tools.py`.
 
 ## Defence in depth
 

@@ -16,8 +16,8 @@ Read with Kiro open. Kiro changes often; if a screen differs from this guide, ch
 
 | File | Where it comes from | When |
 |---|---|---|
-| Steering rules (`sql-rules.md`, `mcp-tool-design.md`) | Ready-made in the repo, in `kiro/steering/` | You copy them into `.kiro/steering/` in Day 1 M01 step 6 |
-| MCP server config (`mcp.json`) | `kiro/mcp.json.example` in the repo | You copy it into `.kiro/settings/mcp.json` in Day 1 M01 step 5 |
+| Steering rules (`sql-rules.md`, `mcp-tool-design.md`) | Ready-made in the repo, in `kiro/steering/` | You copy them into `.kiro/steering/` in Day 1 M01 step 4 |
+| MCP server config (`mcp.json`) | `kiro/mcp.json.example` in the repo | You copy it into `.kiro/settings/mcp.json` in Day 1 M01 step 4 |
 | Specs (`requirements.md`, `design.md`, `tasks.md`) | **Kiro writes them** | Day 1 M03 Exercise A. You review and approve them |
 | Hooks | Examples in this guide only | Optional. Not used in the labs |
 

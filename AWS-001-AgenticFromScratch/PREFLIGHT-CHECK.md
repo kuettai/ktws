@@ -27,7 +27,7 @@ The script is `rst_preflight.py`. It only reads: it installs nothing, changes no
 |---|---|
 | Software | Python 3.12+, uv, Node.js 20+, npm/npx, Git, AWS CLI v2, Docker or Finch (running), Kiro |
 | Network | HTTPS access to Kiro, AWS sign-in, Workshop Studio, AWS Console, Amazon Quick, the AWS service APIs used in the labs, and package registries. Also whether a proxy re-signs HTTPS traffic to AWS |
-| Local ports | 7778, 8000, 8080, 8081 and 8765 are free and reachable on `127.0.0.1` |
+| Local ports | 6274, 6275 and 6278 (MCP Inspector), 7778, 8000, 8080, 8081 and 8765 are free and reachable on `127.0.0.1` |
 | Downloads (`--deep`) | Python packages from PyPI, npm packages, and one container image (`python:3.12-slim`, about 50 MB) |
 
 ## Reading the result

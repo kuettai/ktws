@@ -264,6 +264,9 @@ def check_network(region):
 # ---- 3. Local ports --------------------------------------------------------------------------
 
 PORTS = {
+    6274: "MCP Inspector web page",
+    6275: "MCP Inspector (internal)",
+    6278: "MCP Inspector (internal)",
     7778: "Kiro / Quick sign-in callback",
     8000: "MCP server (local HTTP)",
     8080: "mock POS / Inventory / Sales API",
