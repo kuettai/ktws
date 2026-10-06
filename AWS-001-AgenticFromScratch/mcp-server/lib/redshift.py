@@ -16,6 +16,7 @@ import time
 from decimal import Decimal
 
 import boto3
+from botocore.exceptions import BotoCoreError, ClientError, NoCredentialsError, ProfileNotFound
 from mcp.server.mcpserver.exceptions import ToolError
 
 log = logging.getLogger(__name__)
@@ -78,9 +79,31 @@ def _wait(client, statement_id: str) -> tuple[str, dict]:
         delay = min(delay * 1.5, 1.0)
 
 
+def _aws_problem(exc: Exception) -> QueryError:
+    """Turn an AWS-side failure (credentials, profile, region, workgroup) into a message that says
+    what to check. Shown to the model and the user; contains no secrets."""
+    profile = os.environ.get("AWS_PROFILE") or "not set (default credentials)"
+    region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "not set"
+    where = f"workgroup {os.environ.get('REDSHIFT_WORKGROUP')!r} in region {region}, AWS_PROFILE {profile}"
+    log.error("Redshift unreachable (%s): %s", where, exc)
+    if isinstance(exc, (ProfileNotFound, NoCredentialsError)):
+        return QueryError(f"No usable AWS credentials ({where}). Set AWS_PROFILE to your workshop "
+                          "profile in the terminal, in mcp-server/.env, or in Kiro's mcp.json.")
+    code = exc.response.get("Error", {}).get("Code", "") if isinstance(exc, ClientError) else type(exc).__name__
+    if code in ("ExpiredToken", "ExpiredTokenException", "UnrecognizedClientException", "InvalidClientTokenId"):
+        return QueryError(f"The AWS credentials were refused ({code}; {where}). Sign in again or refresh them.")
+    if code in ("ResourceNotFoundException", "ValidationException", "AccessDeniedException"):
+        return QueryError(f"Can't use the Redshift workgroup ({code}; {where}). Check that AWS_PROFILE "
+                          "and AWS_REGION point at the workshop account.")
+    return QueryError(f"Can't reach Redshift ({code}; {where}). Check AWS_PROFILE and AWS_REGION.")
+
+
 def run_query(sql: str, params: dict[str, object] | None = None) -> list[dict]:
     """Run a read-only query and return rows as a list of dicts keyed by column name."""
-    client = _data_api()
+    try:
+        client = _data_api()
+    except (BotoCoreError, ClientError) as exc:
+        raise _aws_problem(exc) from None
     request = {**_target(), "Sql": sql}
     if params:
         request["Parameters"] = [{"name": k, "value": str(v)} for k, v in params.items()]
@@ -88,7 +111,11 @@ def run_query(sql: str, params: dict[str, object] | None = None) -> list[dict]:
     # Redshift Serverless sometimes fails the first query after it has been idle with
     # "Internal error encountered". That is not the query's fault, so try once more.
     for attempt in (1, 2):
-        statement_id, desc = _wait(client, client.execute_statement(**request)["Id"])
+        try:
+            statement_id = client.execute_statement(**request)["Id"]
+        except (BotoCoreError, ClientError) as exc:
+            raise _aws_problem(exc) from None
+        statement_id, desc = _wait(client, statement_id)
         if desc["Status"] == "FINISHED":
             break
         log.error("Query %s %s: %s", statement_id, desc["Status"], desc.get("Error"))

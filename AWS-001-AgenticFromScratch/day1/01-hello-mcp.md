@@ -89,7 +89,7 @@ Open full size: [PNG](img/diagrams/01-hello-mcp-1.png) · [SVG](img/diagrams/01-
     Copy-Item kiro\mcp.json.example .kiro\settings\mcp.json
     ```
 
-    The steering rules (SQL safety, tool design) now apply to everything Kiro writes. In `mcp.json` only `rst-local` is enabled; the other entries are for later modules and stay `"disabled": true`. In Kiro's MCP panel, `rst-local` should show as connected (choose retry if not).
+    The steering rules (SQL safety, tool design) now apply to everything Kiro writes. **Check `AWS_PROFILE` in `.kiro/settings/mcp.json`:** the example says `workshop`; if your AWS profile has another name, change it there (and in `mcp-server/.env`), or the Redshift tools in M02 can't reach the database. In `mcp.json` only `rst-local` is enabled; the other entries are for later modules and stay `"disabled": true`. In Kiro's MCP panel, `rst-local` should show as connected (choose retry if not).
 5. In the **Kiro chat panel**, ask: *"Add a tool `list_menu_categories` to `mcp-server/tools/hello.py` that returns the 5 menu categories from `docs/data-dictionary.md`."* Review the change, then re-test it in Inspector (step 3).
 6. Still in Kiro chat: *"What menu categories exist?"* Kiro should call `list_menu_categories` (you may need to reconnect `rst-local` in the MCP panel so it sees the new tool).
 

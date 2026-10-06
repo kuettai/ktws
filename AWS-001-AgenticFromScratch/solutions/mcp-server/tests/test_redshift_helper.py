@@ -104,3 +104,30 @@ def test_retries_internal_error_once(monkeypatch, outcomes, runs, ok):
         with pytest.raises(rs.QueryError, match="query failed"):
             rs.run_query("SELECT 1")
     assert fake.runs == runs
+
+
+def test_aws_problems_get_a_clear_message(monkeypatch):
+    from botocore.exceptions import ClientError, ProfileNotFound
+
+    monkeypatch.setenv("AWS_PROFILE", "workshop"); monkeypatch.setenv("AWS_REGION", "us-east-1")
+    monkeypatch.setenv("REDSHIFT_WORKGROUP", "rst-workshop")
+
+    class Broken(FakeDataApi):
+        def __init__(self, exc):
+            super().__init__(["FINISHED"]); self.exc = exc
+
+        def execute_statement(self, **kwargs):
+            raise self.exc
+
+    cases = [
+        (ClientError({"Error": {"Code": "ResourceNotFoundException", "Message": "wg"}}, "ExecuteStatement"),
+         "Check that AWS_PROFILE"),
+        (ClientError({"Error": {"Code": "ExpiredTokenException", "Message": "x"}}, "ExecuteStatement"),
+         "Sign in again"),
+        (ProfileNotFound(profile="workshop"), "No usable AWS credentials"),
+    ]
+    for exc, expected in cases:
+        monkeypatch.setattr(rs, "_client", Broken(exc))
+        with pytest.raises(rs.QueryError, match=expected) as info:
+            rs.run_query("SELECT 1")
+        assert "rst-workshop" in str(info.value) and "us-east-1" in str(info.value)

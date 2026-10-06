@@ -12,6 +12,7 @@ Centrepiece module for analysts: SQL they know → MCP tools they own.
 - `lib/redshift.py`: `run_query(sql, params)` — Redshift Data API `execute_statement` → poll → `get_statement_result`, returns a list of dicts. Failures raise `QueryError` (generic message to the model, details to the log).
 - `lib/validation.py`: `date_range`, `bounded_int`, `one_of`. Raise `ToolInputError`, whose message the model sees so it can fix the call. Any other exception reaches the model only as "Error executing tool X".
 - Steering files active (M01 step 4). Reference answers: `solutions/mcp-server/tools/redshift_tools.py`.
+- **AWS credentials:** the server reaches Redshift as your AWS profile. Kiro passes `AWS_PROFILE` from `.kiro/settings/mcp.json`; Inspector run from a terminal uses that terminal's `AWS_PROFILE`, or the one in `mcp-server/.env`. If a tool says it can't reach or use the Redshift workgroup, the profile or region is wrong: the message names the profile and region it used.
 
 ## Defence in depth
 
@@ -79,11 +80,31 @@ Open full size: [PNG](img/diagrams/02-redshift-tools-2.png) · [SVG](img/diagram
     ```
     Group finds the issues: injection, missing `GROUP BY`, base tables, no `LIMIT`.
 
-3. **First tool with Kiro (20m).** Prompt:
-    > Create an MCP tool `get_daily_branch_sales` using pattern 1 in sample-queries.md.
+3. **First tool with Kiro (20m).** Paste this prompt into the Kiro chat panel:
+
+    > Create an MCP tool `get_daily_branch_sales` in `mcp-server/tools/redshift_tools.py` using pattern 1 in `docs/sample-queries.md`.
+
     Review checklist: parameters via `:name`? `mcp.` schema only? date range validated? description follows `mcp-tool-design.md`?
 
-4. **Analysts build 2 more (30m).** `find_branch` (pattern 8) plus one from patterns 2-7. Fast finishers add a third.
+4. **Analysts build 2 more (30m).** First `find_branch`, then one of your choice. Paste each prompt into the Kiro chat panel, review the change with the checklist, and test it in Inspector.
+
+    > Create an MCP tool `find_branch` in `mcp-server/tools/redshift_tools.py` using pattern 8 in `docs/sample-queries.md`. It takes `name_fragment` (part of a branch name, e.g. "bayside") and returns matching branches with their branch_id, so other tools can be called with an ID. Follow the steering rules and `mcp-tool-design.md`: bind parameters, a LIMIT, and a description that says when to use it.
+
+    Then pick one, and paste its prompt (replace the name and pattern number):
+
+    | Tool name | Pattern | Answers |
+    |---|---|---|
+    | `get_top_items` | 3 | Best-selling items at a branch |
+    | `get_waste_by_item` | 6 | What a branch wasted, and what it cost |
+    | `get_peak_hours` | 4 | Busiest hours of the day |
+    | `get_channel_mix` | 5 | Dine-in vs takeaway vs delivery |
+    | `compare_weekend_weekday` | 7 | Weekend vs weekday sales |
+    | `get_top_branches` | 2 | Top branches by revenue (HQ only, in M06) |
+
+    > Create an MCP tool `get_top_items` in `mcp-server/tools/redshift_tools.py` using pattern 3 in `docs/sample-queries.md`. Validate the date range and any number inputs with `lib/validation.py`, pass every value as a bind parameter, end the query with a LIMIT, and write the description so a model knows when to use this tool instead of the others.
+
+    Fast finishers add a third.
+
 5. **Break it on purpose (15m, instructor demo).**
     - Ask Kiro: "Make a tool that deletes test orders." Steering should refuse.
     - Temporarily remove steering, ask again; Kiro writes it. Run it: DB grants reject (`permission denied`). Lesson: steering guides, grants enforce.
@@ -91,8 +112,17 @@ Open full size: [PNG](img/diagrams/02-redshift-tools-2.png) · [SVG](img/diagram
 6. **Own query (optional, fast finishers or homework).** Analysts bring one of their real weekly report queries; write as new pattern → tool.
 
 ## Checkpoint
-`get_daily_branch_sales`, `find_branch`, plus 1 more tool pass Inspector and the review checklist ([primer checklist](../prework/python-reading-primer.md#checklist-reviewing-kiros-code)).
-Instructor: copy `solutions/mcp-server/tests/test_redshift_tools.py` into the participant repo and run `uv run pytest` — it checks every tool for `mcp.` views only, bind parameters, `LIMIT`, and no `SELECT *`.
+`get_daily_branch_sales`, `find_branch`, plus 1 more tool pass Inspector and the review checklist ([primer checklist](../prework/python-reading-primer.md#checklist-reviewing-kiros-code)). Then run the automatic check, which finds every tool in `tools/redshift_tools.py` and checks its SQL (`mcp.` views only, bind parameters, a `LIMIT`, no `SELECT *`), with no AWS needed:
+
+```bash
+(cd mcp-server && uv run pytest tests/test_sql_rules.py -v)
+```
+
+```powershell
+Push-Location mcp-server; uv run pytest tests/test_sql_rules.py -v; Pop-Location
+```
+
+Every tool should show `PASSED`. A failure names the rule that was broken.
 
 ## Instructor notes
 - Timing: 90m = 10 + 15 + 20 + 30 + 15. Step 5 runs as one shared demo on the instructor screen (participants watch, then try the Kiro chat question themselves). If behind, skip the steering-removal part of step 5.
