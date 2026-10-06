@@ -29,7 +29,7 @@ git clone https://github.com/kuettai/ktws.git
 cd ktws\AWS-001-AgenticFromScratch
 ```
 
-**Run every command in these guides from this folder** (`ktws/AWS-001-AgenticFromScratch`), unless a step says otherwise (for example `cd infra`). Open this same folder in Kiro.
+**Run every command in these guides from this folder** (`ktws/AWS-001-AgenticFromScratch`, called the **workshop folder** in all guides), unless a step says otherwise (for example `cd infra`). Open this same folder in Kiro.
 
 No Git yet? Install it first (see the list below), or download the code as a ZIP from the [repository page](https://github.com/kuettai/ktws) (**Code → Download ZIP**) and unzip it.
 
