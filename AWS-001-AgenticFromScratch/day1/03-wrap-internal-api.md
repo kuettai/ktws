@@ -9,6 +9,7 @@ Simulates the restaurant chain's existing internal apps. Two ways Kiro can build
 
 ## Pre-built
 - `docker compose up -d` (from the workshop folder): mock Ops API on `:8080` (key `local-dev-key`), Promotions service on `:8081` (token `legacy-dev-token`). Without Docker: `cd mock-api && uv run uvicorn app.main:app --port 8080` and `cd legacy-app && npm start`, each in its own terminal (PowerShell: replace `&&` with `;`).
+- **Using Finch instead of Docker?** Type `finch compose` wherever the guides say `docker compose`, e.g. `finch compose up -d`. Stop the services with `finch compose down`. Finch needs `mcp-server/.env` to exist (M01 step 1), even to stop them.
 - `mock-api/openapi.yaml` — contract. Branch/item IDs match Redshift. Branch 12 is always low on chicken (demo).
 - `legacy-app/src/` — undocumented Promotions service (Node, no spec, no README for participants).
 - `.env`: `OPS_API_BASE_URL`, `OPS_API_KEY`, `PROMO_API_BASE_URL`, `PROMO_API_TOKEN`.

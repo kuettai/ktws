@@ -33,7 +33,9 @@
     ```powershell
     docker compose --profile http up --build
     ```
-    Starts mock-api, legacy-app and the MCP server on `:8000`.
+    Starts mock-api, legacy-app and the MCP server on `:8000`. With Finch, use `finch compose --profile http up --build`.
+
+    To stop everything: `docker compose --profile http down` (with Finch: `finch compose --profile http down`, then `finch compose down`, because Finch leaves the other services running otherwise).
 
 5. Point Kiro at `http://localhost:8000/mcp` (no auth yet).
 
