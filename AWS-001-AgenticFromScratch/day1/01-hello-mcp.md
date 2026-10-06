@@ -45,7 +45,7 @@ sequenceDiagram
 Open full size: [PNG](img/diagrams/01-hello-mcp-1.png) · [SVG](img/diagrams/01-hello-mcp-1.svg)
 
 ## Steps
-0. **Open the workshop folder in Kiro**: File → Open Folder → `ktws/AWS-001-AgenticFromScratch` (not `mcp-server/`, and not the `ktws` repo root). Kiro's settings, steering rules and the server path in `mcp.json` are all relative to this folder. Open a terminal in Kiro (or any terminal) in the same folder.
+0. **Open the workshop folder in Kiro**: File → Open Folder → `ktws/AWS-001-AgenticFromScratch` (not `mcp-server/`, and not the `ktws` repo root). Every guide calls this folder the **workshop folder**. Kiro's settings, steering rules and the server path in `mcp.json` are all relative to this folder. Open a terminal in Kiro (or any terminal) in the same folder.
 1. Set up the starter server, then come back to the workshop folder:
 
     ```bash
