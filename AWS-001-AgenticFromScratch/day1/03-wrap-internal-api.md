@@ -45,8 +45,11 @@ Open full size: [PNG](img/diagrams/03-wrap-internal-api-2.png) · [SVG](img/diag
 
 ## Exercise A — From contract (30m)
 1. Open `mock-api/openapi.yaml`. Skim with participants: POS, Inventory, Sales.
-2. Use Kiro **Spec** mode:
-    > Using #[[file:mock-api/openapi.yaml]], design MCP tools for branch managers. Don't map 1:1. Read-only first. Base URL and API key from env vars OPS_API_BASE_URL and OPS_API_KEY.
+2. Use Kiro **Spec** mode, and paste this prompt into the Kiro chat panel:
+
+    > Using #[[file:mock-api/openapi.yaml]], design MCP tools for branch managers in `mcp-server/tools/ops_tools.py`. Don't map 1:1. Read-only first. Read the base URL and API key from the environment variables OPS_API_BASE_URL and OPS_API_KEY.
+
+    The tools run inside the MCP server, so it is the **MCP server** that needs the Ops API's address and key. Both are already set: in `mcp-server/.env` (for Inspector) and in `.kiro/settings/mcp.json` (for Kiro), as `http://localhost:8080` and `local-dev-key`, which matches the mock API's own key in `docker-compose.yml`. Reading them from variables, instead of writing them into the code, is what lets the same tools use the real addresses and keys on ECS in M05.
 
 3. Review Kiro's `requirements.md` / `design.md` before letting it generate tasks. Push back on any 1:1 mapping.
 4. Implement. Expected tools: `get_current_stock`, `list_low_stock_items`, `get_today_sales`, `list_orders_today`, `get_order`.
