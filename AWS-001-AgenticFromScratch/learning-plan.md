@@ -26,16 +26,20 @@ By the end of the workshop, participants can:
 
 ## Environment
 
-- One AWS **sandbox** account per participant (or per pair) — never a production account. An instructor-run event can provide these through AWS Workshop Studio; self-paced, use your own sandbox.
-- Set up before Day 1 (instructor, or yourself when self-paced): Redshift Serverless with seeded mock data, S3 bucket, Cognito user pool skeleton (`RstDataStack`, `RstAuthStack`). Steps: [Prerequisites, Account setup](prereqs.md#account-setup).
-- Also needed: Amazon Quick (Enterprise) for the Quick modules, and Amazon Bedrock model access for the Day 3 agent.
+- AWS **sandbox** accounts only, never production. Two ways to run it ([Prerequisites, Account setup](prereqs.md#account-setup)):
+    - **Shared account** (recommended for groups new to AWS): one sandbox for everyone. The instructor deploys the data warehouse, user directory and test users once; each participant deploys only their own MCP server (`RstMcpStack-<name>`) on Day 1.
+    - **One account per participant** (or per pair, e.g. through AWS Workshop Studio, or self-paced): the same setup in every account.
+- Set up before Day 1 by the instructor (or yourself when self-paced): Redshift Serverless with seeded mock data, Cognito user pool and test users (`RstDataStack`, `RstAuthStack`). Participants deploy nothing before Day 1.
+- Also needed: Amazon Quick (Enterprise) for the Quick modules (optional; Kiro covers the same steps), and Amazon Bedrock model access for the Day 3 agent.
 - Laptop: Kiro, Python 3.12+, `uv`, Docker (or Finch), AWS CLI v2, Node.js (MCP Inspector). Full checklist: [Prerequisites](prereqs.md).
 
 ## Pre-work (~2h)
 
+Participants only install tools, get the code, set up the AWS access the instructor sends them, and read. No AWS deployments.
+
 | Item | Time | Guide |
 |---|---|---|
-| Install and check software, sign in to Kiro | 30m | [Prerequisites](prereqs.md) |
+| Install and check software, get the code, set up the AWS profile, sign in to Kiro | 30m | [Prerequisites, Participants](prereqs.md#participants-before-day-1) |
 | Python reading primer — read, not write, the code Kiro produces | 60m | [Python reading primer](prework/python-reading-primer.md) |
 | Reviewing Kiro specs, steering and hooks | 25m | [Kiro guide](prework/kiro-guide.md) |
 

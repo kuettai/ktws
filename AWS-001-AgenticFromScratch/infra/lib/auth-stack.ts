@@ -20,6 +20,8 @@ export interface AuthStackProps extends StackProps {
    * Empty: identifier `rst-mcp`, scope `rst-mcp/read` (fine for clients that send no resource).
    */
   mcpResourceUrl: string;
+  /** Shared-account mode: create only the user pool's sign-in domain (no clients or scopes). */
+  sharedDomain: boolean;
 }
 
 /** Kiro IDE OAuth redirect (pinned in mcp.json `oauth.redirectUri`) and scripts/get_token.py. */
@@ -47,7 +49,7 @@ export class AuthStack extends Stack {
         role: new cognito.StringAttribute({ minLen: 2, maxLen: 20, mutable: true }),
         branch_id: new cognito.StringAttribute({ minLen: 1, maxLen: 10, mutable: true }),
       },
-      passwordPolicy: { minLength: 12 },
+      passwordPolicy: { minLength: 8 }, // plus Cognito defaults: lower, upper, digit, symbol
       removalPolicy: RemovalPolicy.DESTROY,
     });
     this.userPool.addTrigger(
@@ -59,13 +61,17 @@ export class AuthStack extends Stack {
       value: `https://cognito-idp.${this.region}.amazonaws.com/${this.userPool.userPoolId}`,
     });
 
-    if (!props.fullAuth) return;
+    if (!props.fullAuth && !props.sharedDomain) return;
 
     // ---- Everything below is what participants build by hand in Module 06 Part B ----
+    // Shared-account mode: a user pool has one sign-in domain, so the instructor creates it
+    // (-c sharedDomain=true) and each participant adds their own resource server and clients.
     const domain = this.userPool.addDomain('Domain', {
       cognitoDomain: { domainPrefix: `rst-mcp-${this.account}` },
       managedLoginVersion: cognito.ManagedLoginVersion.NEWER_MANAGED_LOGIN,
     });
+    new CfnOutput(this, 'CognitoDomain', { value: domain.baseUrl() });
+    if (!props.fullAuth) return;
 
     const read = new cognito.ResourceServerScope({ scopeName: 'read', scopeDescription: 'Read restaurant data' });
     const write = new cognito.ResourceServerScope({ scopeName: 'write', scopeDescription: 'Change restaurant data (Day 2)' });
@@ -108,7 +114,6 @@ export class AuthStack extends Stack {
       }).node.addDependency(domain);
     }
 
-    new CfnOutput(this, 'CognitoDomain', { value: domain.baseUrl() });
     new CfnOutput(this, 'QuickS2sClientId', { value: s2s.userPoolClientId });
     new CfnOutput(this, 'QuickUserClientId', { value: quickUser.userPoolClientId });
     new CfnOutput(this, 'KiroUserClientId', { value: kiroUser.userPoolClientId });

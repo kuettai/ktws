@@ -2,6 +2,8 @@
 
 > **Preview** — this module has not yet been tested end to end.
 
+> **Shared account?** Put your participant name in the agent's AgentCore names (for example the runtime `rst_agent_<name>` in Module 05), as on Day 2. Delete only your own resources at the end.
+
 On Days 1–2 we built tools. Quick and Kiro decided when to call them. Today we build that deciding part ourselves: the agent.
 
 ## Objectives

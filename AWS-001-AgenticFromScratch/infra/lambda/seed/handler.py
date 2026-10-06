@@ -1,14 +1,21 @@
 """CloudFormation custom resource: generate mock data, upload to S3, load into Redshift.
 
 Bundled with data/*.sql and data/generate_seed.py at synth time (see data-stack.ts).
-Idempotent: safe on stack update (tables truncated before COPY, "already exists" ignored).
+
+Create: load data for SeedEndDate (YYYY-MM-DD; empty = yesterday, UTC), then views and grants.
+Update: always re-apply views, grants and IAM role mapping (cheap, idempotent), so adding a
+participant role works. Reload the data only when a new, different SeedEndDate is passed on
+purpose. An empty or unchanged SeedEndDate (e.g. `cdk deploy RstMcpStack` without -c
+seedEndDate, which also updates this stack) keeps the data as it is.
 """
 import json
 import logging
 import os
 import subprocess
 import sys
+import re
 import time
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import boto3
@@ -59,10 +66,21 @@ def run(sql: str, props: dict, tolerate: tuple[str, ...] = ()) -> None:
         time.sleep(2)
 
 
-def seed(props: dict) -> None:
+def end_date(value: str) -> str:
+    """SeedEndDate as YYYY-MM-DD. Empty means yesterday (UTC)."""
+    if not value:
+        return (datetime.now(timezone.utc).date() - timedelta(days=1)).isoformat()
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
+        raise ValueError(f"SeedEndDate must be YYYY-MM-DD, got {value!r}")
+    return date.fromisoformat(value).isoformat()
+
+
+def load_data(props: dict, seed_end_date: str) -> None:
+    """Generate the mock data for the 180 days up to seed_end_date and (re)load every table."""
     bucket = props["SeedBucket"]
+    log.info("Loading data up to %s", seed_end_date)
     subprocess.run([sys.executable, str(HERE / "generate_seed.py"), "--out", str(SEED_DIR),
-                    "--end-date", props["SeedEndDate"]], check=True)
+                    "--end-date", seed_end_date], check=True)
     for f in SEED_DIR.iterdir():
         s3.upload_file(str(f), bucket, f"seed/{f.name}")
 
@@ -74,6 +92,10 @@ def seed(props: dict) -> None:
     for stmt in statements(copy_sql):
         if stmt.lstrip().upper().startswith("COPY"):
             run(stmt, props)
+
+
+def apply_access(props: dict) -> None:
+    """Views, the read-only mcp_reader role, and the IAM roles mapped to it."""
     for stmt in statements((HERE / "views.sql").read_text()):
         run(stmt, props)
     for stmt in statements((HERE / "grants.sql").read_text()):
@@ -88,6 +110,16 @@ def seed(props: dict) -> None:
 
 def on_event(event, context):
     log.info(json.dumps({k: v for k, v in event.items() if k != "ResponseURL"}))
-    if event["RequestType"] in ("Create", "Update"):
-        seed(event["ResourceProperties"])
+    props = event["ResourceProperties"]
+    if event["RequestType"] == "Create":
+        load_data(props, end_date(props.get("SeedEndDate", "")))
+        apply_access(props)
+    elif event["RequestType"] == "Update":
+        new = props.get("SeedEndDate", "")
+        old = event.get("OldResourceProperties", {}).get("SeedEndDate", "")
+        if new and new != old:
+            load_data(props, end_date(new))
+        else:
+            log.info("SeedEndDate %r unchanged or not given: keeping the loaded data", new)
+        apply_access(props)
     return {"PhysicalResourceId": event.get("PhysicalResourceId", "rst-seed")}

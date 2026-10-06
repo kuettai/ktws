@@ -7,3 +7,4 @@ cdk.out/
 data/seed/
 *.js.map
 scripts/rst-preflight-report-*.txt
+cdk.context.json

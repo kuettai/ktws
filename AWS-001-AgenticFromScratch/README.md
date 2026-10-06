@@ -11,6 +11,8 @@ Participants direct Kiro (an AI coding assistant) to write the code. They focus 
 
 Start with [learning-plan.md](learning-plan.md), then [prereqs.md](prereqs.md).
 
+Run it in **one shared sandbox account** for the whole group (the instructor sets up the data and users once; each participant deploys only their own MCP server) or in **one account per participant**. See [Prerequisites, Account setup](prereqs.md#account-setup).
+
 ## Status
 
 | Part | State |

@@ -78,6 +78,20 @@ Open full size: [PNG](img/diagrams/05-deploy-ecs-1.png) · [SVG](img/diagrams/05
     npx cdk deploy RstMcpStack -c mcpServerDir=../solutions/mcp-server   # catch-up: reference solution
     ```
 
+    **Shared account?** If your instructor gave you a participant name (for example `alice`), use your own stack name and pass the name, so you don't overwrite anyone else's server. `--exclusively` deploys only your stack, not the shared data stack it builds on:
+
+    ```bash
+    npx cdk deploy RstMcpStack-<name> --exclusively -c participant=<name>
+    npx cdk deploy RstMcpStack-<name> --exclusively -c participant=<name> -c mcpServerDir=../solutions/mcp-server   # catch-up
+    ```
+
+    ```powershell
+    npx cdk deploy RstMcpStack-<name> --exclusively -c participant=<name>
+    npx cdk deploy RstMcpStack-<name> --exclusively -c participant=<name> -c mcpServerDir=../solutions/mcp-server   # catch-up
+    ```
+
+    Use the **same** participant name on every later deploy (Module 06 too), and wherever the guides say `RstMcpStack`, read `RstMcpStack-<name>`.
+
 2. While it deploys, walk through the [architecture diagram](#architecture-diagram) (10m). For each box: what, why, what if missing (see the table under the diagram).
 3. Still waiting: tour the ECS console, CloudWatch log groups, task role permissions, Secrets Manager.
 
@@ -94,7 +108,7 @@ Open full size: [PNG](img/diagrams/05-deploy-ecs-1.png) · [SVG](img/diagrams/05
 - **Secrets Manager** holds the Ops API key and Promo token; ECS injects them as env vars.
 
 ## Checkpoint
-Remote endpoint answers in Inspector. It is **public and unauthenticated** right now (stack output says so) — move to M06 immediately. If the session breaks here, run `npx cdk destroy RstMcpStack`.
+Remote endpoint answers in Inspector. It is **public and unauthenticated** right now (stack output says so) — move to M06 immediately. If the session breaks here, run `npx cdk destroy RstMcpStack` (shared account: `npx cdk destroy RstMcpStack-<name> -c participant=<name>`, never `--all`).
 
 ## Instructor notes
 - Measured deploy time: about 16 minutes for a first deploy (images, ECS, CloudFront). Redeploys that only change settings take 3–4 minutes. Start the deploy before the walkthrough, or the module overruns.

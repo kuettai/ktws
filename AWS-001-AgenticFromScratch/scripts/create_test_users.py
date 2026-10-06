@@ -4,7 +4,8 @@
     python scripts/create_test_users.py <UserPoolId> [--region R] [--profile P]
     (on Windows: py scripts\\create_test_users.py <UserPoolId>)
 
-Asks once for a shared password (12+ characters) for all test users. When input is piped in
+Asks once for a shared password for all test users: 8+ characters with a lowercase letter, an
+uppercase letter, a number and a symbol (the user pool's rule). When input is piped in
 (`... < password-file`), the password is read from that instead.
 Works on Windows, macOS and Linux; needs the AWS CLI v2 on the PATH.
 """
@@ -70,8 +71,8 @@ def main(argv=None, run=subprocess.run) -> None:
     args = p.parse_args(argv)
     base = aws_base(args.region, args.profile)
     password = read_password()
-    if len(password) < 12:
-        sys.exit("The password must be at least 12 characters.")
+    if len(password) < 8:
+        sys.exit("The password must be at least 8 characters, with a lowercase letter, an uppercase letter, a number and a symbol.")
     print(f"Creating users in {args.user_pool_id}")
     for username, role, branch in USERS:
         try:

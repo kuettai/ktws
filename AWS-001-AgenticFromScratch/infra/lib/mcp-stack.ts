@@ -26,6 +26,12 @@ export interface McpStackProps extends StackProps {
   oidcAllowedAudiences: string;
   /** Scope the server requires (RstAuthStack output ReadScope). Empty: rst-mcp/read. */
   oidcRequiredScopes: string;
+  /**
+   * Shared-account mode: the participant's short name (e.g. "alice"). Gives each participant
+   * their own private DNS namespace, so several MCP stacks can live in one VPC. Empty: one
+   * participant per account.
+   */
+  participant: string;
 }
 
 /**
@@ -42,10 +48,12 @@ export class McpStack extends Stack {
       ? { platform: Platform.LINUX_ARM64, runtime: ecs.CpuArchitecture.ARM64 }
       : { platform: Platform.LINUX_AMD64, runtime: ecs.CpuArchitecture.X86_64 };
 
+    // Private DNS names for the internal services. A namespace name can exist only once per VPC.
+    const namespace = props.participant ? `${props.participant}.rst.local` : 'rst.local';
     const cluster = new ecs.Cluster(this, 'Cluster', {
       vpc,
       containerInsightsV2: ecs.ContainerInsights.ENABLED,
-      defaultCloudMapNamespace: { name: 'rst.local', useForServiceConnect: false },
+      defaultCloudMapNamespace: { name: namespace, useForServiceConnect: false },
     });
 
     const opsApiKey = new secretsmanager.Secret(this, 'OpsApiKey', {
@@ -112,7 +120,7 @@ export class McpStack extends Stack {
     alb.connections.allowFrom(ec2.Peer.ipv4(vpc.vpcCidrBlock), ec2.Port.tcp(80), 'CloudFront VPC origin');
 
     const distribution = new cloudfront.Distribution(this, 'Cdn', {
-      comment: 'restaurant MCP server',
+      comment: props.participant ? `restaurant MCP server (${props.participant})` : 'restaurant MCP server',
       defaultBehavior: {
         origin: origins.VpcOrigin.withApplicationLoadBalancer(alb, {
           protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
@@ -145,8 +153,8 @@ export class McpStack extends Stack {
         AWS_REGION: this.region,
         REDSHIFT_WORKGROUP: props.workgroupName,
         REDSHIFT_DATABASE: props.database,
-        OPS_API_BASE_URL: 'http://mock-api.rst.local:8080',
-        PROMO_API_BASE_URL: 'http://legacy-app.rst.local:8081',
+        OPS_API_BASE_URL: `http://mock-api.${namespace}:8080`,
+        PROMO_API_BASE_URL: `http://legacy-app.${namespace}:8081`,
         ...authEnv,
       },
       secrets: {

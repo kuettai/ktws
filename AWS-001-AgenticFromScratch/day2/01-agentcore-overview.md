@@ -2,6 +2,8 @@
 
 > **Preview** — this module has not yet been tested end to end.
 
+> **Shared account?** Everyone works in one AWS account, so names must not clash. Put your participant name (the one from Day 1 Module 05) in every AgentCore resource you create today: runtimes (`rst_mcp_<name>`), gateways (`rst-gateway-<name>`), credential providers and policy engines. Delete only your own resources at the end.
+
 ## Objectives
 - Map every Day 1 component to its AgentCore equivalent.
 - Know what each AgentCore service does and doesn't do.

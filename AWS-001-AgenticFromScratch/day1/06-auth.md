@@ -82,6 +82,14 @@ Open full size: [PNG](img/diagrams/06-auth-3.png) · [SVG](img/diagrams/06-auth-
 **Resource binding (RFC 8707).** MCP clients such as Kiro and Quick send `resource=<McpUrl>` when they ask for a token. Cognito then only accepts custom scopes that belong to a resource server **whose identifier is exactly that URL**. So the resource server identifier is your `McpUrl` (from M05), and the read scope is `<McpUrl>/read`, for example `https://d123abc.cloudfront.net/mcp/read`.
 
 ## Part B — Build user auth in Cognito (25m, console, step by step)
+
+> **Shared account?** Everyone uses one user pool, and a user pool has only one sign-in domain. So:
+>
+> - **Skip step 1.** The instructor has created the domain; use the `CognitoDomain` they give you.
+> - **Put your participant name in everything you create**, so names don't clash: resource server `rst-mcp-<name>` (identifier = **your** `McpUrl`), app clients `quick-user-<name>`, `quick-s2s-<name>` and `kiro-user-<name>`, and a managed login style for each of your user-facing clients. Read those names wherever the steps below and Parts C–D say `rst-mcp`, `quick-user`, `quick-s2s` or `kiro-user`.
+> - **The test users are shared**: everyone signs in as `manager_branch_12`, `analyst_hq` and so on.
+> - **Step 7:** use the shared-account deploy command shown there.
+
 1. Domain (managed login).
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: domain settings with managed login selected · save as `img/m06-cognito-domain.png`
@@ -116,11 +124,27 @@ Open full size: [PNG](img/diagrams/06-auth-3.png) · [SVG](img/diagrams/06-auth-
       -c oidcRequiredScopes=<McpUrl>/read
     ```
 
+    Shared account: deploy your own stack, with your participant name and your three client IDs:
+
+    ```bash
+    npx cdk deploy RstMcpStack-<name> --exclusively -c participant=<name> \
+      -c oidcIssuer=https://cognito-idp.<region>.amazonaws.com/<user_pool_id> \
+      -c oidcAllowedAudiences=<quick-user-<name> id>,<quick-s2s-<name> id>,<kiro-user-<name> id> \
+      -c oidcRequiredScopes=<McpUrl>/read
+    ```
+
+    ```powershell
+    npx cdk deploy RstMcpStack-<name> --exclusively -c participant=<name> `
+      -c oidcIssuer=https://cognito-idp.<region>.amazonaws.com/<user_pool_id> `
+      -c oidcAllowedAudiences=<quick-user-<name> id>,<quick-s2s-<name> id>,<kiro-user-<name> id> `
+      -c oidcRequiredScopes=<McpUrl>/read
+    ```
+
 8. Inspector without token → `401`. Open `https://<cdn>/.well-known/oauth-protected-resource/mcp` in a browser and read it: `resource` is your `McpUrl`, and `scopes_supported` is `<McpUrl>/read`.
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Browser showing the protected resource metadata JSON · save as `img/m06-protected-resource-metadata.png`
 
-Catch-up: `npx cdk deploy RstAuthStack -c fullAuth=true -c mcpResourceUrl=<McpUrl> -c quickCallbackUrls=https://<region>.quicksight.aws.amazon.com/sn/oauthcallback` creates steps 1–6. Keep passing the same `-c` values on every later `RstAuthStack` deploy; leaving `mcpResourceUrl` out switches the scope back to `rst-mcp/read`.
+Catch-up (one account per participant only): `npx cdk deploy RstAuthStack -c fullAuth=true -c mcpResourceUrl=<McpUrl> -c quickCallbackUrls=https://<region>.quicksight.aws.amazon.com/sn/oauthcallback` creates steps 1–6. Keep passing the same `-c` values on every later `RstAuthStack` deploy; leaving `mcpResourceUrl` out switches the scope back to `rst-mcp/read`. In a shared account, don't use it: `RstAuthStack` belongs to the instructor, and its clients would be for one participant only. If you fall behind there, ask the instructor or a neighbour to help you through steps 2–6 in the console.
 
 ## Part C — Connect Quick (20m)
 Field-by-field reference: [docs/auth-options.md](../docs/auth-options.md#amazon-quick).
