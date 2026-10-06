@@ -191,7 +191,7 @@ Either way: call `who_am_i` from Kiro chat.
 > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Kiro chat showing `who_am_i` with role manager and branch 12 · save as `img/m06-kiro-who-am-i.png`
 
 ## Part E — Identity changes data (20m)
-1. Ask Kiro to implement branch scoping per `sql-rules.md` "Branch scoping" section (`lib/scoping.py` + call it from every branch tool). Review. Reference: `solutions/mcp-server/lib/scoping.py`.
+1. Ask Kiro to implement branch scoping per `sql-rules.md` "Branch scoping" section (`lib/scoping.py` + call it from every branch tool). Review. Reference: `solutions/mcp-server/lib/scoping.py`. **Used the M03 shortcut?** You already have `lib/scoping.py` and the tools that call it: read it and its `scoped_branch` calls instead of building it, then make sure your own Redshift tools from M02 call it too.
 2. In Quick as `manager_branch_12`: "Show revenue for branch 5 last week." → tool returns branch 12 only and says so.
 3. As `analyst_hq`: same question → branch 5 returned.
 4. Discuss: with `quick-s2s` (no user), what should scoping do? Reference server treats service tokens as `SERVICE_ROLE` (default `hq`) — a design decision worth debating.

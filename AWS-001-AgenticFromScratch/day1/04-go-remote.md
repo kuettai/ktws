@@ -46,7 +46,10 @@ flowchart LR
     subgraph local["stdio (M01-M03)"]
         k1["Kiro"] -- "starts the process,<br/>stdin / stdout" --> s1["server.py<br/>on your laptop"]
     end
-    subgraph remote["Streamable HTTP (M04 onward)"]
+    subgraph laptop["Streamable HTTP on your laptop (this module)"]
+        k3["Kiro"] -- "HTTP POST<br/>localhost:8000/mcp" --> c1["server in a container<br/>on your laptop"]
+    end
+    subgraph remote["Streamable HTTP on AWS (M05, next module)"]
         k2["Kiro / Quick"] -- "HTTPS POST /mcp" --> lb["Load balancer"]
         lb --> t1["Task 1"]
         lb --> t2["Task 2"]
@@ -55,7 +58,7 @@ flowchart LR
 
 Open full size: [PNG](img/diagrams/04-go-remote-1.png) · [SVG](img/diagrams/04-go-remote-1.svg)
 
-**Why stateless:** the load balancer may send each request to a different task. With `stateless_http=True` no task keeps session state, so any task can answer any request and no sticky sessions are needed.
+Nothing is deployed to AWS in this module: you run the HTTP version on your laptop. The AWS part is what M05 builds, and it is why the server must be **stateless**: the load balancer may send each request to a different task. With `stateless_http=True` no task keeps session state, so any task can answer any request and no sticky sessions are needed.
 
 ## Key concepts
 - **Stateless:** each request independent → any ECS task can serve it, no sticky sessions. AgentCore Runtime (Day 2) also expects this.

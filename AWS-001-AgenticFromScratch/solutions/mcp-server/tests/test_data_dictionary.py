@@ -8,7 +8,10 @@ import re
 from pathlib import Path
 
 HERE = Path(__file__).resolve()
-WORKSHOP = next(p for p in HERE.parents if (p / "docs" / "data-dictionary.md").exists())
+WORKSHOP = next((p for p in HERE.parents if (p / "docs" / "data-dictionary.md").exists()), None)
+if WORKSHOP is None:
+    import pytest
+    pytest.skip("docs/data-dictionary.md not found: run the tests inside the workshop folder", allow_module_level=True)
 SERVER = HERE.parents[1]
 
 

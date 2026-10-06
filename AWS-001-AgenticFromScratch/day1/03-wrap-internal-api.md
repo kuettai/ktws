@@ -44,6 +44,9 @@ flowchart LR
 Open full size: [PNG](img/diagrams/03-wrap-internal-api-2.png) · [SVG](img/diagrams/03-wrap-internal-api-2.svg)
 
 ## Exercise A — From contract (30m)
+
+Short on time, or watching an instructor walk-through? Skip to [Shortcut: use the finished tools](#shortcut-use-the-finished-tools).
+
 1. Open `mock-api/openapi.yaml`. Skim with participants: POS, Inventory, Sales.
 2. Use Kiro **Spec** mode, and paste this prompt into the Kiro chat panel:
 
@@ -76,6 +79,32 @@ The legacy code hides several traps. Did Kiro find them? Check its tools first, 
 - Suspended promos (`st: 'S'`) are hidden; `url.parse()` is deprecated (code-review talking point).
 
 </details>
+
+## Shortcut: use the finished tools
+
+Short on time, behind, or the instructor is walking through instead of building live? Use the reference tools instead of Exercises A and B. From the workshop folder:
+
+```bash
+cp solutions/mcp-server/tools/ops_tools.py solutions/mcp-server/tools/promo_tools.py mcp-server/tools/
+cp solutions/mcp-server/lib/scoping.py mcp-server/lib/
+```
+
+```powershell
+Copy-Item solutions\mcp-server\tools\ops_tools.py, solutions\mcp-server\tools\promo_tools.py mcp-server\tools\
+Copy-Item solutions\mcp-server\lib\scoping.py mcp-server\lib\
+```
+
+Then open `mcp-server/server.py` and replace the line `# Module 03: import tools.ops_tools, tools.promo_tools` with:
+
+```python
+import tools.ops_tools  # noqa: F401
+import tools.promo_tools  # noqa: F401
+```
+
+Test in Inspector (M01 step 3): you should see `get_current_stock`, `list_low_stock_items`, `get_today_sales`, `list_orders_today`, `get_order` and the four promotion tools. In Kiro, reconnect `rst-local`.
+
+- `lib/scoping.py` (the branch limit) comes along because the finished tools use it. Participants normally build it in M06 Part E; with the shortcut you review it there instead.
+- Walk through the files in this order: `ops_tools.py` (one tool per question, the `_get` helper, error messages the model can read), then `promo_tools.py` (how the hidden traps below are handled: cents, the channel bitmask, `yyyymmdd` dates).
 
 ## Wrap (15m)
 - Contract-first more reliable; code-reading works but needs more review.
