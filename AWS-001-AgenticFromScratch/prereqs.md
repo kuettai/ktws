@@ -22,7 +22,7 @@ No Git yet? Install it first (see the list below), or download the code as a ZIP
 
 - [ ] Kiro installed and signed in
 - [ ] Python 3.12+ and [`uv`](https://docs.astral.sh/uv/)
-- [ ] Docker Desktop or Finch (needed from Module 04; Modules 01-03 run without it)
+- [ ] Docker Desktop or Finch (needed from Module 04; Modules 01-03 run without it). Can't install either on your laptop? Run the Module 05 deploy from AWS CloudShell, which has Docker built in.
 - [ ] AWS CLI v2
 - [ ] Node.js 20+ (for `npx @modelcontextprotocol/inspector`)
 - [ ] Git

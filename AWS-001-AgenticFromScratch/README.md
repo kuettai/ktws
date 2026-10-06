@@ -23,6 +23,8 @@ See [Status and known limitations](learning-plan.md#status-and-known-limitations
 
 ## Quick start (local, no AWS)
 
+Optional: a 2-minute look at the reference server on your laptop. It is **not a workshop step**; for the workshop, start at [Prerequisites](prereqs.md). Needs Docker or Finch for the two mock services; without them, start the services directly instead of `docker compose up -d` (`cd mock-api && uv run uvicorn app.main:app --port 8080` and, in a second terminal, `cd legacy-app && npm start`).
+
 ```bash
 git clone https://github.com/kuettai/ktws.git
 cd ktws/AWS-001-AgenticFromScratch          # run every command in the guides from here
