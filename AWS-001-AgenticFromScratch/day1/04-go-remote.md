@@ -52,7 +52,16 @@
 
     To stop everything: `docker compose --profile http down` (with Finch: `finch compose --profile http down`, then `finch compose down`, because Finch leaves the other services running otherwise).
 
-5. Point Kiro at `http://localhost:8000/mcp` (no auth yet).
+5. Point Kiro at `http://localhost:8000/mcp` (no auth yet). In `.kiro/settings/mcp.json` (workshop folder), set `"disabled": true` on `rst-local` (so Kiro doesn't run a second copy with the same tools) and `"disabled": false` on `rst-local-http`. If your file has no `rst-local-http` (copied before it was added), add it inside `"mcpServers"`:
+
+    ```json
+    "rst-local-http": {
+      "url": "http://localhost:8000/mcp",
+      "disabled": false
+    }
+    ```
+
+    In Kiro's MCP panel `rst-local-http` should show as connected (choose retry if not). In Kiro chat, ask *"Call ping with my name"*: Kiro now talks to the server in the container over HTTP instead of starting it itself. To go back to stdio later, flip the two `disabled` values back.
 
 ## stdio vs Streamable HTTP
 

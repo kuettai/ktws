@@ -23,6 +23,10 @@
       "disabled": false,
       "autoApprove": []
     },
+    "rst-local-http": {
+      "url": "http://localhost:8000/mcp",
+      "disabled": true
+    },
     "rst-remote-ecs": {
       "url": "https://<distribution-id>.cloudfront.net/mcp",
       "oauth": {
