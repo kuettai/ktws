@@ -13,6 +13,7 @@ them to _site_src/ and:
     (grep SCREENSHOT_YET_TO_PREPARE to list what is still missing)
   - <details> blocks (quiz answers) get their markdown rendered
   - a ```bash block followed by a ```powershell block becomes "macOS / Linux" | "Windows" tabs
+  - fails on markdown that would render wrongly (list or code block glued to a paragraph)
   - images under img/ folders (diagram PNG/SVG from render_diagrams.py, screenshots) are copied
 
     python3 build_site.py && mkdocs serve          # preview on http://127.0.0.1:8000/ktws/
@@ -89,7 +90,31 @@ def rewrite_link(target: str, page: str) -> str:
     return f"{REPO_URL}/{kind}/{BRANCH}/{resolved}" + suffix
 
 
+LIST_ITEM = re.compile(r"^(\s*)([-*+]|\d+\.)\s+")
+
+
+def lint(page: str, text: str) -> list[str]:
+    """Markdown that GitHub renders but MkDocs merges into the paragraph above: a list item or a
+    code fence straight after paragraph text, with no blank line in between."""
+    problems, fence, prev = [], False, ""
+    for n, line in enumerate(text.split("\n"), 1):
+        stripped = line.lstrip()
+        opens_fence = stripped.startswith("```") and not fence
+        if not fence and (LIST_ITEM.match(line) or opens_fence) and prev.strip():
+            p = prev.lstrip()
+            if not LIST_ITEM.match(prev) and not p.startswith(("|", "#", ">", "<", "```", "!!!")):
+                problems.append(f"{page}:{n}: add a blank line before this line")
+        if stripped.startswith("```"):
+            fence = not fence
+        prev = line
+    return problems
+
+
 def main() -> None:
+    problems = [p for page in PAGES for p in lint(page, (ROOT / page).read_text(encoding="utf-8"))]
+    if problems:
+        raise SystemExit("Markdown formatting problems (they render wrongly on the site):\n  "
+                         + "\n  ".join(problems))
     shutil.rmtree(OUT, ignore_errors=True)
     for page in PAGES:
         text = (ROOT / page).read_text(encoding="utf-8")
