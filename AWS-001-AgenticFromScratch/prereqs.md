@@ -36,7 +36,7 @@ No Git yet? Install it first (see the list below), or download the code as a ZIP
 ### Laptop tools
 
 - [ ] Kiro installed and signed in
-- [ ] Python 3.12+ and [`uv`](https://docs.astral.sh/uv/)
+- [ ] Python 3.12+ and [`uv`](https://docs.astral.sh/uv/) (`uv` creates every Python environment for you, so you never set up a venv by hand; the AgentCore CLI also uses it on Days 2–3)
 - [ ] Docker Desktop or Finch (needed from Module 04; Modules 01-03 run without it). Can't install either on your laptop? Run the Module 05 deploy from AWS CloudShell, which has Docker built in.
 - [ ] AWS CLI v2, version 2.34 or later (`aws --version`; Day 2 uses the `bedrock-agentcore-control` commands)
 - [ ] Node.js 22.19+ (MCP Inspector needs it; current LTS versions are fine)
