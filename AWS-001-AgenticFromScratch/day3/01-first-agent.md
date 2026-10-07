@@ -12,42 +12,44 @@
 - By default the agent starts `solutions/mcp-server` locally over stdio. To use your own Day 1 server: `export MCP_SERVER_DIR=../mcp-server` (PowerShell: `$env:MCP_SERVER_DIR = "../mcp-server"`).
 
 ## Steps
-1. **Set up (10m).**
+1. **Set up (10m).** From the workshop folder:
 
     ```bash
-    docker compose up -d                       # workshop folder: mock Ops API + Promotions service
+    cp solutions/mcp-server/.env.example solutions/mcp-server/.env   # then set AWS_PROFILE in it
+    docker compose up -d                       # mock Ops API + Promotions service (Finch: finch compose up -d)
     cd agent && uv sync
     uv run pytest tests/test_lab1_recorder.py  # fails now: that is the TODO
     ```
 
     ```powershell
-    docker compose up -d                       # workshop folder: mock Ops API + Promotions service
+    Copy-Item solutions\mcp-server\.env.example solutions\mcp-server\.env   # then set AWS_PROFILE in it
+    docker compose up -d                       # mock Ops API + Promotions service (Finch: finch compose up -d)
     cd agent; uv sync
     uv run pytest tests/test_lab1_recorder.py  # fails now: that is the TODO
     ```
-    - Finch instead of Docker: `finch compose up -d`.
-    - The local MCP server reads Redshift and Ops API settings from `solutions/mcp-server/.env`. Create it from the example and set `AWS_PROFILE` to your profile (as for `mcp-server/.env` on Day 1): `cp solutions/mcp-server/.env.example solutions/mcp-server/.env` (PowerShell: `Copy-Item solutions\mcp-server\.env.example solutions\mcp-server\.env`), run from the workshop folder before `cd agent`.
 
-2. **Read the agent (10m).** Open `src/rst_agent/agent.py` with the primer checklist in mind.
+    The agent starts the reference MCP server (`solutions/mcp-server`) on your laptop, which reads its Redshift and Ops API settings from that `.env`. Open it and set `AWS_PROFILE` to your profile, as for `mcp-server/.env` on Day 1. Expected from `pytest`: `3 failed, 2 passed`.
+
+2. **Read the agent (10m).** Open `agent/src/rst_agent/agent.py` with the [primer checklist](../prework/python-reading-primer.md#checklist-reviewing-kiros-code) in mind.
     - `SYSTEM_PROMPT`: the house rules. Plan first, a tool for every number, which tools are history and which are live, ask if unclear.
     - `build_agent()`: model + tools + system prompt + hooks. Note that `ApprovalHook` is always installed (M03).
-    - Where are the tools defined? Not here. They come from the MCP server through `list_tools_sync()` in `__main__.py`.
+    - Where are the tools defined? Not here. They come from the MCP server: `__main__.py` asks for them with `all_tools()` from `connections.py`, which reads the whole tool list.
 
 3. **First run (10m).**
 
     ```bash
-    export AWS_PROFILE=workshop AWS_REGION=<workshop region>
+    export AWS_PROFILE=<your profile> AWS_REGION=<workshop region>   # the profile from prework, often workshop
     uv run python -m rst_agent --role manager --branch 12
     ```
 
     ```powershell
-    $env:AWS_PROFILE = "workshop"; $env:AWS_REGION = "<workshop region>"
+    $env:AWS_PROFILE = "<your profile>"; $env:AWS_REGION = "<workshop region>"   # the profile from prework, often workshop
     uv run python -m rst_agent --role manager --branch 12
     ```
     Ask: *What are my best sellers this month?* It answers, but you can't see how. That's the gap. (The mock history ends the day before the workshop. If "this month" has only a few days, the agent may say so and offer last month instead.)
 
-4. **Recorder with Kiro (20m).** Open `src/rst_agent/hooks.py`, `ToolCallRecorder`. Prompt Kiro with:
-    > Complete the TODOs in `ToolCallRecorder._before` and `_after` in `src/rst_agent/hooks.py`. Follow the comments exactly and make `tests/test_lab1_recorder.py` pass. Don't change the tests.
+4. **Recorder with Kiro (20m).** Open `agent/src/rst_agent/hooks.py`, `ToolCallRecorder`. Prompt Kiro with:
+    > Complete the TODOs in `ToolCallRecorder._before` and `_after` in `agent/src/rst_agent/hooks.py`. Follow the comments exactly and make `agent/tests/test_lab1_recorder.py` pass. Don't change the tests.
 
     Review, check:
 

@@ -26,6 +26,8 @@ Open full size: [PNG](img/diagrams/04-identity-1.png) · [SVG](img/diagrams/04-i
 
 ## Steps
 
+> **Shared account?** Your names carry your participant name: `rst-ops-api-key-<name>`, `rst-runtime-s2s-<name>`, and the role `rst-gateway-role-<name>-<region>`.
+
 1. **Find the credentials (10m).**
 
     ```bash

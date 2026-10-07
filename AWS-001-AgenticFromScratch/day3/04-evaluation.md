@@ -8,7 +8,7 @@
 Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full field reference). Work in pairs.
 
 ## Steps
-1. **Set up (5m).**
+1. **Set up (5m).** From the workshop folder (`cd ..` if you are still in `agent/`):
 
     ```bash
     cd evals && uv sync
@@ -20,7 +20,7 @@ Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full 
     uv run pytest -q                        # the scorer's own tests, no AWS
     ```
 
-2. **Read the starter set (10m).** Open `questions.yaml`. 18 questions, one per line of this table:
+2. **Read the starter set (10m).** Open `questions.yaml`. 18 questions in 6 categories:
 
     | Category | IDs | What it checks |
     |---|---|---|
@@ -33,8 +33,8 @@ Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full 
 
     For each, find `expected_tools`, `expected_params`, `answer_type` and where the expected answer comes from (`expected_answer`, `ground_truth_sql` or `ground_truth_http`).
 
-3. **Write your own (25m).** Each pair adds 3–5 questions from real requests (your M00 list, your own report queries), so the set reaches 20+. Cover at least: a branch given by name, a multi-step question, and one the persona is not allowed to see.
-    - Write the SQL you would write by hand against the `mcp` views ([data dictionary](../docs/data-dictionary.md)). Run it in the Redshift query editor first: the answer is the first column of the first row.
+3. **Write your own (25m).** Each pair adds 3–5 questions from real requests (the questions you listed in Day 1 M00, your own report queries), so the set reaches 20+. Cover at least: a branch given by name, a multi-step question, and one the persona is not allowed to see.
+    - Write the SQL you would write by hand against the `mcp` views ([data dictionary](../docs/data-dictionary.md)). Run it in the Redshift query editor first (console: **Amazon Redshift → Query editor v2**, connect to workgroup `rst-workshop`, database `dev`): the answer is the first column of the first row.
     - Use the date placeholders (`{month_start}`, `{month_end}`, `{week_start}`, `{end}`, `{month_label}`), not fixed dates.
     - Check the filled-in SQL: `uv run python compute_ground_truth.py --print-sql`.
 4. **Compute expected answers (10m).** Live questions read the mock API, so pin its clock first:
@@ -45,7 +45,7 @@ Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full 
     (cd mock-api && MOCK_NOW=2026-10-01T14:30:00 MOCK_API_KEY=local-dev-key \
         uv run uvicorn app.main:app --port 8080 &)
     cd evals
-    export AWS_PROFILE=workshop AWS_REGION=<region> REDSHIFT_WORKGROUP=rst-workshop REDSHIFT_DATABASE=dev
+    export AWS_PROFILE=<your profile> AWS_REGION=<region> REDSHIFT_WORKGROUP=rst-workshop REDSHIFT_DATABASE=dev
     export OPS_API_BASE_URL=http://localhost:8080 OPS_API_KEY=local-dev-key
     export SEED_END_DATE=<seedEndDate from RstDataStack>
     uv run python compute_ground_truth.py           # writes ground_truth.json
@@ -58,11 +58,14 @@ Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full 
     Start-Process -NoNewWindow -WorkingDirectory mock-api -FilePath uv `
         -ArgumentList "run", "uvicorn", "app.main:app", "--port", "8080"   # runs in the background
     cd evals
-    $env:AWS_PROFILE = "workshop"; $env:AWS_REGION = "<region>"; $env:REDSHIFT_WORKGROUP = "rst-workshop"; $env:REDSHIFT_DATABASE = "dev"
+    $env:AWS_PROFILE = "<your profile>"; $env:AWS_REGION = "<region>"; $env:REDSHIFT_WORKGROUP = "rst-workshop"; $env:REDSHIFT_DATABASE = "dev"
     $env:OPS_API_BASE_URL = "http://localhost:8080"; $env:OPS_API_KEY = "local-dev-key"
     $env:SEED_END_DATE = "<seedEndDate from RstDataStack>"
     uv run python compute_ground_truth.py           # writes ground_truth.json
     ```
+
+    - `SEED_END_DATE` is the last day of the mock history: the `seedEndDate` your instructor used for `RstDataStack` (the default is `2026-09-30`, in `infra/cdk.json`). Ask if unsure.
+    - Keep the pinned mock API running for steps 5–7: the local MCP server reads it. When you finish the module, stop it and start the Docker one again: `pkill -f "app.main:app --port 8080"` then `docker compose start mock-api` (PowerShell: `Get-CimInstance Win32_Process -Filter "CommandLine like '%app.main:app%'" | ForEach-Object { Stop-Process -Id $_.ProcessId }`, then `docker compose start mock-api`).
 
 5. **Baseline run (15m).**
 

@@ -172,7 +172,7 @@ def add_policy_files(files: dict, gateway_name: str, suffix: str) -> None:
     engines = aws("bedrock-agentcore-control", "list-policy-engines", "--query",
                   f"policyEngines[?name=='{engine_name}'].policyEngineArn", as_json=True)
     if not engines:
-        sys.exit(f"No policy engine named {engine_name}. Create it first (Module 05 step 2).")
+        sys.exit(f"No policy engine named {engine_name}. Create it first (Module 05 step 1).")
     for cedar in sorted((HERE / "day2" / "policies").glob("*.cedar")):
         statement = cedar.read_text().replace("<GATEWAY_ARN>", gateway["gatewayArn"])
         files[f"policy-{cedar.stem}.json"] = {"cedar": {"statement": statement}}

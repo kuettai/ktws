@@ -2,6 +2,8 @@
 
 > **Shared account?** Everyone works in one AWS account, so names must not clash. Put your participant name (the one from Day 1 Module 05) in every AgentCore resource you create today: the project `rstday2<name>`, and `--participant <name>` for the helper scripts, which then name the gateway `rst-gateway-<name>`, the credential providers `rst-ops-api-key-<name>` / `rst-runtime-s2s-<name>`, and expect the policy engine `rst_policy_engine_<name>`. Delete only your own resources at the end.
 
+> New terms (target, interceptor, Cedar, span...) are in the [Glossary](../docs/glossary.md). Every command and resource of Days 2–3 is in the [AgentCore cheat sheet](../docs/agentcore-cheatsheet.md).
+
 ## Objectives
 - Map every Day 1 component to its AgentCore equivalent.
 - Know what each AgentCore service does and doesn't do.

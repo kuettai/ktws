@@ -6,6 +6,8 @@
 
 On Days 1–2 we built tools. Quick and Kiro decided when to call them. Today we build that deciding part ourselves: the agent.
 
+> New terms (hook, interrupt, persona, ground truth...) are in the [Glossary](../docs/glossary.md).
+
 ## Objectives
 - Explain the agent loop: plan → tool call → result → next step.
 - Name the ways a loop ends: final answer, question back to the user, error, step limit, pause for approval.

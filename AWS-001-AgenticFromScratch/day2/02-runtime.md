@@ -144,7 +144,7 @@ Open full size: [PNG](img/diagrams/02-runtime-1.png) · [SVG](img/diagrams/02-ru
 
     The first deploy takes about 3–5 minutes. It ends with `Deployed to 'default'` and the runtime ARN (`arn:aws:bedrock-agentcore:<region>:<account>:runtime/rstday2_RstMcp-...`). In the console: **Amazon Bedrock AgentCore → Runtime** shows `rstday2_RstMcp` as **Ready**.
 
-7. **Call it from the terminal (10m).** Get a sign-in token for `manager_branch_12` (the browser opens; sign in). The scope is your Day 1 `McpUrl` plus `/read`, so the same token works on ECS and on Runtime:
+7. **Call it from the terminal (10m).** Get a sign-in token for `manager_branch_12` (the browser opens; sign in). The scope is your Day 1 `McpUrl` plus `/read`, so the same token works on ECS and on Runtime. For example, with `McpUrl` `https://d123abc.cloudfront.net/mcp` the scope line is `openid https://d123abc.cloudfront.net/mcp/read`, and `--domain` is the full address, such as `https://rst-mcp-yourname.auth.us-east-1.amazoncognito.com`. ([Sign-in and tokens, explained](../docs/sign-in-and-tokens.md) covers what a token is.)
 
     ```bash
     export RST_MCP_SCOPE="openid <McpUrl>/read"
@@ -186,7 +186,7 @@ Open full size: [PNG](img/diagrams/02-runtime-1.png) · [SVG](img/diagrams/02-ru
     agentcore logs --runtime RstMcp --since 15m
     ```
 
-    `agentcore status` prints the runtime's **URL**: `https://bedrock-agentcore.<region>.amazonaws.com/runtimes/<encoded ARN>/invocations`. Add `?qualifier=DEFAULT` at the end for MCP clients: that is your **Runtime MCP URL**. The logs are your server's own log lines, as in CloudWatch on Day 1.
+    `agentcore status` prints the runtime's **URL**: `https://bedrock-agentcore.<region>.amazonaws.com/runtimes/<encoded ARN>/invocations`. Add `?qualifier=DEFAULT` at the end for MCP clients (the qualifier picks the runtime endpoint; `DEFAULT` is your latest deploy): that is your **Runtime MCP URL**. The logs are your server's own log lines, as in CloudWatch on Day 1.
 
 9. **Connect Kiro (10m).** Add an entry to `.kiro/settings/mcp.json` (workshop folder), with your Runtime MCP URL:
 

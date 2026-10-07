@@ -98,6 +98,8 @@ nav:
       - Reference:
           - CDK infrastructure: AWS-001-AgenticFromScratch/docs/infra.md
           - Sign-in and tokens, explained: AWS-001-AgenticFromScratch/docs/sign-in-and-tokens.md
+          - AgentCore cheat sheet: AWS-001-AgenticFromScratch/docs/agentcore-cheatsheet.md
+          - Glossary: AWS-001-AgenticFromScratch/docs/glossary.md
           - Authentication options: AWS-001-AgenticFromScratch/docs/auth-options.md
           - Data dictionary: AWS-001-AgenticFromScratch/docs/data-dictionary.md
           - Sample queries: AWS-001-AgenticFromScratch/docs/sample-queries.md

@@ -93,7 +93,7 @@ Open full size: [PNG](img/diagrams/05-deploy-agent-1.png) · [SVG](img/diagrams/
     ],
     ```
 
-    Keep the JSON valid: a comma after each item except the last. The execution role is created for you this time (no `executionRoleArn`): the agent needs Bedrock and logs, but no Redshift access, because data goes through the Gateway.
+    Keep the JSON valid: a comma after each item except the last. Check it with `python3 -m json.tool agentcore/agentcore.json` (PowerShell: `py -m json.tool agentcore\agentcore.json`): it prints the file, or the line with the mistake. The execution role is created for you this time (no `executionRoleArn`): the agent needs Bedrock and logs, but no Redshift access, because data goes through the Gateway.
 
 4. **Deploy (5m).**
 
@@ -105,7 +105,7 @@ Open full size: [PNG](img/diagrams/05-deploy-agent-1.png) · [SVG](img/diagrams/
     agentcore deploy -y
     ```
 
-5. **Ask it a question as a branch manager (10m).** Session IDs must be at least 33 characters, so use a generated one:
+5. **Ask it a question as a branch manager (10m).** `RST_MCP_TOKEN` must hold a fresh token for `manager_branch_12` (Day 2 M02 step 7; from `rstday3/` the script is `../scripts/get_token.py`). Session IDs must be at least 33 characters, so use a generated one (no `uuidgen` on your machine? `python3 -c "import uuid; print(uuid.uuid4())"`):
 
     ```bash
     export SID=$(uuidgen)
@@ -137,16 +137,47 @@ Open full size: [PNG](img/diagrams/05-deploy-agent-1.png) · [SVG](img/diagrams/
     agentcore invoke --runtime RstAgent --session-id $env:SID --bearer-token "$env:RST_MCP_TOKEN" '{\"approve\": false}'
     ```
 
-    The answer says nothing was refunded. Then get a token for `staff_branch_12`, start a new session, ask for the same refund and **approve** it (`{"approve": true}`): the Day 2 rule `refunds_managers_only` still refuses it. A person approves; the policy decides what is allowed. (Watch what the agent tries next: it may look for another refund tool with the Gateway's search. The same rule covers both.)
+    The answer says nothing was refunded.
+
+    > **Windows PowerShell 5.1** needs `\"` inside JSON arguments, as above. In PowerShell 7.3 or later, write `'{"approve": false}'` as in the bash tab.
+
+    Now as a staff member: get a token for `staff_branch_12` into `RST_MCP_TOKEN` (sign in as `staff_branch_12`), start a **new** session, ask for the same refund and **approve** it:
+
+    ```bash
+    export SID=$(uuidgen)
+    agentcore invoke --runtime RstAgent --session-id $SID --bearer-token "$RST_MCP_TOKEN" \
+      "Refund my most recent completed order today, the food was cold"
+    agentcore invoke --runtime RstAgent --session-id $SID --bearer-token "$RST_MCP_TOKEN" '{"approve": true}'
+    ```
+
+    ```powershell
+    $env:SID = [guid]::NewGuid().ToString()
+    agentcore invoke --runtime RstAgent --session-id $env:SID --bearer-token "$env:RST_MCP_TOKEN" `
+      "Refund my most recent completed order today, the food was cold"
+    agentcore invoke --runtime RstAgent --session-id $env:SID --bearer-token "$env:RST_MCP_TOKEN" '{\"approve\": true}'
+    ```
+
+    The refund tool returns an error: the Day 2 rule `refunds_managers_only` refuses it. A person approved; the policy decides what is allowed. Watch what the agent tries next: it may look for another refund tool with the Gateway's search and ask for approval again. Decline that one (`{"approve": false}`); the same rule would refuse it anyway.
 
 6. **Trace it (5m).** **CloudWatch → GenAI Observability → Bedrock AgentCore** → your agent → **Sessions**, pick your session: the question, each model call, each Gateway tool call, the answer. The logs: `agentcore logs --runtime RstAgent --since 15m` (in `rstday3/`). The Gateway's own spans (policy decisions) are in `aws/spans`, as in Day 2 M05 Part B.
 
-7. **Compare scores (5m).** Run the M04 question set with the tools coming from the Gateway instead of the local server. Each persona needs its own token (sign in as each user with `get_token.py`):
+7. **Compare scores (5m).** Run the M04 question set with the tools coming from the Gateway instead of the local server. Each test **persona** (the user a question runs as) needs its own token, in a variable named after it: `MCP_TOKEN_HQ` for `analyst_hq`, `MCP_TOKEN_MANAGER_BRANCH_12` for `manager_branch_12`, and so on. `get_test_tokens.py` signs in as each user in turn and saves the tokens to files (you are still in `rstday3/`):
+
+    ```bash
+    python3 ../scripts/get_test_tokens.py <Cognito domain> <kiro-user id> analyst_hq manager_branch_12 manager_branch_5 staff_branch_12
+    ```
+
+    ```powershell
+    py ..\scripts\get_test_tokens.py <Cognito domain> <kiro-user id> analyst_hq manager_branch_12 manager_branch_5 staff_branch_12
+    ```
+
+    Then:
 
     ```bash
     cd ../evals
     export MCP_URL=<Gateway URL>
-    export MCP_TOKEN_HQ=... MCP_TOKEN_MANAGER_BRANCH_12=... MCP_TOKEN_MANAGER_BRANCH_5=... MCP_TOKEN_STAFF_BRANCH_12=...
+    export MCP_TOKEN_HQ=$(cat /tmp/rst-token-analyst_hq) MCP_TOKEN_MANAGER_BRANCH_12=$(cat /tmp/rst-token-manager_branch_12)
+    export MCP_TOKEN_MANAGER_BRANCH_5=$(cat /tmp/rst-token-manager_branch_5) MCP_TOKEN_STAFF_BRANCH_12=$(cat /tmp/rst-token-staff_branch_12)
     uv run python run_evals.py --label "via Gateway"
     uv run python score.py results/latest.json
     ```
@@ -154,13 +185,15 @@ Open full size: [PNG](img/diagrams/05-deploy-agent-1.png) · [SVG](img/diagrams/
     ```powershell
     cd ..\evals
     $env:MCP_URL = "<Gateway URL>"
-    $env:MCP_TOKEN_HQ = "..."; $env:MCP_TOKEN_MANAGER_BRANCH_12 = "..."
-    $env:MCP_TOKEN_MANAGER_BRANCH_5 = "..."; $env:MCP_TOKEN_STAFF_BRANCH_12 = "..."
+    $env:MCP_TOKEN_HQ = Get-Content $env:TEMP\rst-token-analyst_hq; $env:MCP_TOKEN_MANAGER_BRANCH_12 = Get-Content $env:TEMP\rst-token-manager_branch_12
+    $env:MCP_TOKEN_MANAGER_BRANCH_5 = Get-Content $env:TEMP\rst-token-manager_branch_5; $env:MCP_TOKEN_STAFF_BRANCH_12 = Get-Content $env:TEMP\rst-token-staff_branch_12
     uv run python run_evals.py --label "via Gateway"
     uv run python score.py results/latest.json
     ```
 
     Expect the **live** questions (q09–q11) to differ: your ground truth came from the local mock API with its clock pinned (M04 step 4), and the Gateway reads the deployed one. History questions should score as before. Did the agent ever pick an `OpsApi___` tool where you expected a `RstMcp___` one?
+
+> **Which token variable?** `RST_MCP_TOKEN`: you, for `agentcore invoke`, `mcp_call.py` and Kiro. `MCP_TOKEN`: the local agent (`python -m rst_agent` with `MCP_URL`). `MCP_TOKEN_<PERSONA>`: the eval runner, one per test user.
 
 ## Checkpoint
 - `agentcore invoke` answers a question as `manager_branch_12`, with `tool_calls` going through the Gateway.

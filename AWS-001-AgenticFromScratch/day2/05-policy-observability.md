@@ -39,7 +39,16 @@ Read them in `day2/policies/` before you start:
 Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch themselves (Day 1 M06 Part E). The rules add the same protection for the Ops API, which can't do it, and a second check on refunds.
 
 ## Before you start
-- M03 is done; `GATEWAY_URL` and a fresh `RST_MCP_TOKEN` (M02 step 7) are set. Tokens for other users: run `get_token.py` again and sign in as that user (Day 1 M06 "Switching test users").
+- M03 is done, and you are in the workshop folder with `GATEWAY_ID`, `GATEWAY_URL`, `RST_MCP_SCOPE` and a fresh `RST_MCP_TOKEN` set (new terminal: M03 step 4 "New terminal?").
+- **Switching users** (step 7): get a token for another test user with the same command as Day 2 M02 step 7, run from the workshop folder, and sign in as that user on the page that opens:
+
+    ```bash
+    export RST_MCP_TOKEN=$(python3 scripts/get_token.py --domain <Cognito domain> --client-id <kiro-user id>)
+    ```
+
+    ```powershell
+    $env:RST_MCP_TOKEN = (py scripts\get_token.py --domain <Cognito domain> --client-id <kiro-user id>)
+    ```
 - In this module, `mcp_call` means `uv run --directory solutions/mcp-server python ../../scripts/mcp_call.py "$GATEWAY_URL"` (PowerShell: `uv run --directory solutions/mcp-server python ..\..\scripts\mcp_call.py "$env:GATEWAY_URL"`). Type the full command each time.
 
 > **Shared account?** Name the engine `rst_policy_engine_<name>` (underscores, no hyphens), and add `--participant <name>` to the script in step 2.
@@ -56,14 +65,22 @@ Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch
     aws bedrock-agentcore-control create-policy-engine --name rst_policy_engine --query "[policyEngineId,status]" --output text
     ```
 
-    Note the **policy engine ID**. Check until it says `ACTIVE`:
+    Keep its ID in a variable (shared account: `rst_policy_engine_<name>`), then check until it says `ACTIVE`:
 
     ```bash
-    aws bedrock-agentcore-control get-policy-engine --policy-engine-id <policy engine id> --query status --output text
+    export ENGINE_ID=$(aws bedrock-agentcore-control list-policy-engines --query "policyEngines[?name=='rst_policy_engine'].policyEngineId" --output text)
     ```
 
     ```powershell
-    aws bedrock-agentcore-control get-policy-engine --policy-engine-id <policy engine id> --query status --output text
+    $env:ENGINE_ID = (aws bedrock-agentcore-control list-policy-engines --query "policyEngines[?name=='rst_policy_engine'].policyEngineId" --output text)
+    ```
+
+    ```bash
+    aws bedrock-agentcore-control get-policy-engine --policy-engine-id $ENGINE_ID --query status --output text
+    ```
+
+    ```powershell
+    aws bedrock-agentcore-control get-policy-engine --policy-engine-id $env:ENGINE_ID --query status --output text
     ```
 
 2. **Write the policy files (2m).** The script puts your gateway's ARN into each rule and writes the Gateway update files:
@@ -76,7 +93,7 @@ Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch
     py scripts\make_gateway_inputs.py rstday2 --policies
     ```
 
-    It writes `policy-*.json` (one per rule), `gateway-policy-log-only.json` and `gateway-policy-enforce.json` to `rstday2/gateway/`. It also writes the two secret files of M03 again: delete them.
+    It writes `policy-*.json` (one per rule), `gateway-policy-log-only.json` and `gateway-policy-enforce.json` to `rstday2/gateway/`. It also writes the two secret files of M03 again: delete them (`rm rstday2/gateway/api-key-provider.json rstday2/gateway/oauth-provider.json`; PowerShell: `Remove-Item rstday2\gateway\api-key-provider.json, rstday2\gateway\oauth-provider.json`).
 
 3. **Attach the engine in log-only mode (3m).** Rules are evaluated and logged, but nothing is blocked yet:
 
@@ -94,7 +111,7 @@ Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch
 
     ```bash
     for rule in signed_in_users live_data_own_branch refunds_managers_only transfers_from_own_branch; do
-      aws bedrock-agentcore-control create-policy --policy-engine-id <policy engine id> --name $rule \
+      aws bedrock-agentcore-control create-policy --policy-engine-id $ENGINE_ID --name $rule \
         --validation-mode FAIL_ON_ANY_FINDINGS --definition file://rstday2/gateway/policy-$rule.json \
         --query "[name,status]" --output text
     done
@@ -102,7 +119,7 @@ Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch
 
     ```powershell
     foreach ($rule in "signed_in_users", "live_data_own_branch", "refunds_managers_only", "transfers_from_own_branch") {
-      aws bedrock-agentcore-control create-policy --policy-engine-id <policy engine id> --name $rule `
+      aws bedrock-agentcore-control create-policy --policy-engine-id $env:ENGINE_ID --name $rule `
         --validation-mode FAIL_ON_ANY_FINDINGS --definition file://rstday2/gateway/policy-$rule.json `
         --query "[name,status]" --output text
     }
@@ -111,11 +128,11 @@ Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch
     After 20 seconds, all four should be `ACTIVE`:
 
     ```bash
-    aws bedrock-agentcore-control list-policies --policy-engine-id <policy engine id> --query "policies[].[name,status]" --output table
+    aws bedrock-agentcore-control list-policies --policy-engine-id $ENGINE_ID --query "policies[].[name,status]" --output table
     ```
 
     ```powershell
-    aws bedrock-agentcore-control list-policies --policy-engine-id <policy engine id> --query "policies[].[name,status]" --output table
+    aws bedrock-agentcore-control list-policies --policy-engine-id $env:ENGINE_ID --query "policies[].[name,status]" --output table
     ```
 
     `CREATE_FAILED`? `--query "policies[].[name,statusReasons]"` explains why. The engine checks each rule against the tools' real argument types before accepting it, for example:
@@ -158,40 +175,54 @@ Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch
     | `manager_branch_12` | `OpsApi___requestStockTransfer fromBranchId=5 toBranchId=12 itemId=1 qty=2` | `DENIED ... transfers_from_own_branch` |
     | `manager_branch_12` | `OpsApi___requestStockTransfer fromBranchId=12 toBranchId=5 itemId=1 qty=2` | `OK`, a `transferId` (this really creates a transfer in the mock API) |
     | `staff_branch_12` | `OpsApi___issueRefund branchId=12 orderId=1 reason=test` | `DENIED ... refunds_managers_only` |
-    | `staff_branch_12` | `list` | 30 tools, not 33: tools a user can never call are **hidden** from their tool list |
+    | `staff_branch_12` | `list` | 30 tools, not 33: `OpsApi___issueRefund`, `RstMcp___issue_refund` and `OpsApi___requestStockTransfer` are **hidden**, because staff can never call them |
 
     A denied call never reaches the Ops API. The message names the rule that refused it.
 
 ## Part B — Observability (25m)
 
-1. **Turn on the Gateway's logs and traces (5m).** Gateways don't send them by default. Replace `<gateway id>` and `<gateway ARN>` (`get-gateway --query gatewayArn`):
+1. **Turn on the Gateway's logs and traces (5m).** Gateways don't send them by default. First keep three more values in variables:
 
     ```bash
-    LOG_GROUP=/aws/vendedlogs/bedrock-agentcore/gateway/APPLICATION_LOGS/<gateway id>
-    aws logs create-log-group --log-group-name $LOG_GROUP
-    aws logs put-delivery-source --name rst-gateway-logs --log-type APPLICATION_LOGS --resource-arn <gateway ARN>
-    aws logs put-delivery-destination --name rst-gateway-logs \
-      --delivery-destination-configuration destinationResourceArn=arn:aws:logs:<region>:<account>:log-group:$LOG_GROUP
-    aws logs create-delivery --delivery-source-name rst-gateway-logs \
-      --delivery-destination-arn arn:aws:logs:<region>:<account>:delivery-destination:rst-gateway-logs
-    aws logs put-delivery-source --name rst-gateway-traces --log-type TRACES --resource-arn <gateway ARN>
-    aws logs put-delivery-destination --name rst-gateway-traces --delivery-destination-type XRAY
-    aws logs create-delivery --delivery-source-name rst-gateway-traces \
-      --delivery-destination-arn arn:aws:logs:<region>:<account>:delivery-destination:rst-gateway-traces
+    export GATEWAY_ARN=$(aws bedrock-agentcore-control get-gateway --gateway-identifier $GATEWAY_ID --query gatewayArn --output text)
+    export ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+    echo $GATEWAY_ARN $ACCOUNT $AWS_REGION
     ```
 
     ```powershell
-    $LogGroup = "/aws/vendedlogs/bedrock-agentcore/gateway/APPLICATION_LOGS/<gateway id>"
+    $env:GATEWAY_ARN = (aws bedrock-agentcore-control get-gateway --gateway-identifier $env:GATEWAY_ID --query gatewayArn --output text)
+    $env:ACCOUNT = (aws sts get-caller-identity --query Account --output text)
+    echo $env:GATEWAY_ARN $env:ACCOUNT $env:AWS_REGION
+    ```
+
+    Then create the deliveries (shared account: add `-<name>` to the four names `rst-gateway-logs` and `rst-gateway-traces`, which must be unique in the account):
+
+    ```bash
+    LOG_GROUP=/aws/vendedlogs/bedrock-agentcore/gateway/APPLICATION_LOGS/$GATEWAY_ID
+    aws logs create-log-group --log-group-name $LOG_GROUP
+    aws logs put-delivery-source --name rst-gateway-logs --log-type APPLICATION_LOGS --resource-arn $GATEWAY_ARN
+    aws logs put-delivery-destination --name rst-gateway-logs \
+      --delivery-destination-configuration destinationResourceArn=arn:aws:logs:$AWS_REGION:$ACCOUNT:log-group:$LOG_GROUP
+    aws logs create-delivery --delivery-source-name rst-gateway-logs \
+      --delivery-destination-arn arn:aws:logs:$AWS_REGION:$ACCOUNT:delivery-destination:rst-gateway-logs
+    aws logs put-delivery-source --name rst-gateway-traces --log-type TRACES --resource-arn $GATEWAY_ARN
+    aws logs put-delivery-destination --name rst-gateway-traces --delivery-destination-type XRAY
+    aws logs create-delivery --delivery-source-name rst-gateway-traces \
+      --delivery-destination-arn arn:aws:logs:$AWS_REGION:$ACCOUNT:delivery-destination:rst-gateway-traces
+    ```
+
+    ```powershell
+    $LogGroup = "/aws/vendedlogs/bedrock-agentcore/gateway/APPLICATION_LOGS/$env:GATEWAY_ID"
     aws logs create-log-group --log-group-name $LogGroup
-    aws logs put-delivery-source --name rst-gateway-logs --log-type APPLICATION_LOGS --resource-arn <gateway ARN>
+    aws logs put-delivery-source --name rst-gateway-logs --log-type APPLICATION_LOGS --resource-arn $env:GATEWAY_ARN
     aws logs put-delivery-destination --name rst-gateway-logs `
-      --delivery-destination-configuration destinationResourceArn=arn:aws:logs:<region>:<account>:log-group:$LogGroup
+      --delivery-destination-configuration destinationResourceArn=arn:aws:logs:$env:AWS_REGION:$env:ACCOUNT:log-group:$LogGroup
     aws logs create-delivery --delivery-source-name rst-gateway-logs `
-      --delivery-destination-arn arn:aws:logs:<region>:<account>:delivery-destination:rst-gateway-logs
-    aws logs put-delivery-source --name rst-gateway-traces --log-type TRACES --resource-arn <gateway ARN>
+      --delivery-destination-arn arn:aws:logs:$env:AWS_REGION:$env:ACCOUNT:delivery-destination:rst-gateway-logs
+    aws logs put-delivery-source --name rst-gateway-traces --log-type TRACES --resource-arn $env:GATEWAY_ARN
     aws logs put-delivery-destination --name rst-gateway-traces --delivery-destination-type XRAY
     aws logs create-delivery --delivery-source-name rst-gateway-traces `
-      --delivery-destination-arn arn:aws:logs:<region>:<account>:delivery-destination:rst-gateway-traces
+      --delivery-destination-arn arn:aws:logs:$env:AWS_REGION:$env:ACCOUNT:delivery-destination:rst-gateway-traces
     ```
 
     (In the console, the same is on the gateway's page: **Log delivery → Add** and **Tracing → Enable**.) Then repeat three calls from the Part A table: one allowed, one denied, and one `RstMcp___get_waste_by_item branch_id=12 start_date=2026-09-01 end_date=2026-09-30`.
@@ -236,11 +267,7 @@ Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch
 - Log-only first, then enforce: how long would you run log-only in production, and what would you look for in the logs?
 
 ## Clean up
-At the end of the day (or after Day 3), in this order:
-
-1. `update-gateway --cli-input-json file://rstday2/gateway/gateway.json --gateway-identifier <gateway id>` (detaches the engine), then `delete-policy` for each rule and `delete-policy-engine`.
-2. `aws logs delete-delivery`, `delete-delivery-source` and `delete-delivery-destination` for both deliveries, then the log group.
-3. M03's targets, gateway and credential providers; M02's runtime.
+At the end of the day (or after Day 3), delete in this order: the policy engine (detach it first), the log deliveries, M03's targets, gateway and credential providers, then M02's runtime and `RstAgentCoreStack`. The [AgentCore cheat sheet](../docs/agentcore-cheatsheet.md#delete-everything-in-this-order) has every command.
 
 ## Instructor notes
 - Tested in us-east-1 with AWS CLI 2.34. Policy names allow letters, digits and `_` only.

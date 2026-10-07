@@ -1,7 +1,7 @@
 # D2 M06 — Capstone (60m)
 
 ## Task (pairs)
-Pick a real analyst question set (from M00 capture or below). Deliver it end to end on AgentCore.
+Pick a real analyst question set (the questions you listed in Day 1 M00, or one below). Deliver it end to end on AgentCore.
 
 Suggested scenarios:
 
@@ -21,13 +21,13 @@ Suggested scenarios:
 3. Tell the Gateway to read the server's tool list again:
 
     ```bash
-    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier <gateway id> --query "items[].[name,targetId]" --output text
-    aws bedrock-agentcore-control synchronize-gateway-targets --gateway-identifier <gateway id> --target-id-list <RstMcp target id>
+    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier $GATEWAY_ID --query "items[].[name,targetId]" --output text
+    aws bedrock-agentcore-control synchronize-gateway-targets --gateway-identifier $GATEWAY_ID --target-id-list <RstMcp target id>
     ```
 
     ```powershell
-    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier <gateway id> --query "items[].[name,targetId]" --output text
-    aws bedrock-agentcore-control synchronize-gateway-targets --gateway-identifier <gateway id> --target-id-list <RstMcp target id>
+    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier $env:GATEWAY_ID --query "items[].[name,targetId]" --output text
+    aws bedrock-agentcore-control synchronize-gateway-targets --gateway-identifier $env:GATEWAY_ID --target-id-list <RstMcp target id>
     ```
 
 4. With the policy engine on ENFORCE, a new tool is allowed by `signed_in_users.cedar`. If it changes data, add a rule for it (M05).

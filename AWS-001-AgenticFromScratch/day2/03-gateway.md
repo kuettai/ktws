@@ -46,7 +46,8 @@ Tool names on the Gateway are `<target>___<tool>` (three underscores): `OpsApi__
 
 ## Before you start
 - M02 is done: `agentcore status` shows `RstMcp` deployed, and `RST_MCP_TOKEN` works (get a new one if an hour has passed, M02 step 7).
-- Commands run from the **workshop folder**, with `AWS_PROFILE` and `AWS_REGION` set.
+- Go back to the **workshop folder** (the one with `infra/`, `scripts/` and `rstday2/`): M02 ended inside `rstday2/`, so run `cd ..`. All commands below start there, with `AWS_PROFILE` and `AWS_REGION` set.
+- In commands, `$GATEWAY_ID` (PowerShell: `$env:GATEWAY_ID`) is a variable you set once in step 4. A new terminal forgets variables: see "New terminal?" at the end of step 4.
 
 > **Shared account?** Add `--participant <name>` to the script in step 2, and use the names it prints (`rst-gateway-<name>` and so on).
 
@@ -113,14 +114,30 @@ Tool names on the Gateway are `<target>___<tool>` (three underscores): `OpsApi__
       --query "[gatewayId,gatewayUrl]" --output text
     ```
 
-    Note both values: the **gateway ID** (`rst-gateway-abc123xyz`) and the **Gateway URL** (`https://rst-gateway-abc123xyz.gateway.bedrock-agentcore.<region>.amazonaws.com/mcp`). Wait until it is ready (about 30 seconds):
+    It prints the **gateway ID** (`rst-gateway-abc123xyz`) and the **Gateway URL** (`https://rst-gateway-abc123xyz.gateway.bedrock-agentcore.<region>.amazonaws.com/mcp`). Keep both in variables for the next steps (shared account: use your gateway's name, `rst-gateway-<name>`):
 
     ```bash
-    aws bedrock-agentcore-control get-gateway --gateway-identifier <gateway id> --query status --output text
+    export GATEWAY_ID=$(aws bedrock-agentcore-control list-gateways --query "items[?name=='rst-gateway'].gatewayId" --output text)
+    export GATEWAY_URL=$(aws bedrock-agentcore-control get-gateway --gateway-identifier $GATEWAY_ID --query gatewayUrl --output text)
+    echo $GATEWAY_ID $GATEWAY_URL
     ```
 
     ```powershell
-    aws bedrock-agentcore-control get-gateway --gateway-identifier <gateway id> --query status --output text
+    $env:GATEWAY_ID = (aws bedrock-agentcore-control list-gateways --query "items[?name=='rst-gateway'].gatewayId" --output text)
+    $env:GATEWAY_URL = (aws bedrock-agentcore-control get-gateway --gateway-identifier $env:GATEWAY_ID --query gatewayUrl --output text)
+    echo $env:GATEWAY_ID $env:GATEWAY_URL
+    ```
+
+    > **New terminal?** Run these two lines again, and get a new `RST_MCP_TOKEN` (M02 step 7) with `RST_MCP_SCOPE` set. Every later module that uses the Gateway assumes `GATEWAY_ID`, `GATEWAY_URL` and `RST_MCP_TOKEN` are set.
+
+    Wait until the Gateway is ready (about 30 seconds):
+
+    ```bash
+    aws bedrock-agentcore-control get-gateway --gateway-identifier $GATEWAY_ID --query status --output text
+    ```
+
+    ```powershell
+    aws bedrock-agentcore-control get-gateway --gateway-identifier $env:GATEWAY_ID --query status --output text
     ```
 
     Repeat until it prints `READY`.
@@ -128,48 +145,46 @@ Tool names on the Gateway are `<target>___<tool>` (three underscores): `OpsApi__
 5. **Add the two targets (10m).**
 
     ```bash
-    aws bedrock-agentcore-control create-gateway-target --gateway-identifier <gateway id> \
+    aws bedrock-agentcore-control create-gateway-target --gateway-identifier $GATEWAY_ID \
       --cli-input-json file://rstday2/gateway/target-ops-api.json --query "[name,status]" --output text
-    aws bedrock-agentcore-control create-gateway-target --gateway-identifier <gateway id> \
+    aws bedrock-agentcore-control create-gateway-target --gateway-identifier $GATEWAY_ID \
       --cli-input-json file://rstday2/gateway/target-runtime.json --query "[name,status]" --output text
     ```
 
     ```powershell
-    aws bedrock-agentcore-control create-gateway-target --gateway-identifier <gateway id> `
+    aws bedrock-agentcore-control create-gateway-target --gateway-identifier $env:GATEWAY_ID `
       --cli-input-json file://rstday2/gateway/target-ops-api.json --query "[name,status]" --output text
-    aws bedrock-agentcore-control create-gateway-target --gateway-identifier <gateway id> `
+    aws bedrock-agentcore-control create-gateway-target --gateway-identifier $env:GATEWAY_ID `
       --cli-input-json file://rstday2/gateway/target-runtime.json --query "[name,status]" --output text
     ```
 
     When a target is created, the Gateway reads its tools: from the OpenAPI file for `OpsApi`, and by asking your Runtime server (signed in as `quick-s2s`) for `RstMcp`. After about a minute, both should be `READY`:
 
     ```bash
-    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier <gateway id> \
+    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier $GATEWAY_ID \
       --query "items[].[name,status]" --output table
     ```
 
     ```powershell
-    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier <gateway id> `
+    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier $env:GATEWAY_ID `
       --query "items[].[name,status]" --output table
     ```
 
-    `FAILED`? `get-gateway-target --gateway-identifier <gateway id> --target-id <id>` shows `statusReasons`. For `RstMcp`, the usual cause is that `quick-s2s` is not in the runtime's `--allowed-clients` (M02 step 4).
+    `FAILED`? `aws bedrock-agentcore-control get-gateway-target --gateway-identifier $GATEWAY_ID --target-id <target id> --query statusReasons` (target IDs: `list-gateway-targets ... --query "items[].[name,targetId]"`) shows why. For `RstMcp`, the usual cause is that `quick-s2s` is not in the runtime's `--allowed-clients` (M02 step 4).
 
-6. **Call tools through the Gateway (15m).** A small script calls any MCP address with your token (`RST_MCP_TOKEN` from M02). Set the Gateway URL once:
+6. **Call tools through the Gateway (15m).** A small script calls any MCP address with your token (`RST_MCP_TOKEN` from M02) and the `GATEWAY_URL` from step 4:
 
     ```bash
-    export GATEWAY_URL=<Gateway URL>
     uv run --directory solutions/mcp-server python ../../scripts/mcp_call.py "$GATEWAY_URL" list
     uv run --directory solutions/mcp-server python ../../scripts/mcp_call.py "$GATEWAY_URL" call RstMcp___who_am_i
     ```
 
     ```powershell
-    $env:GATEWAY_URL = "<Gateway URL>"
     uv run --directory solutions/mcp-server python ..\..\scripts\mcp_call.py "$env:GATEWAY_URL" list
     uv run --directory solutions/mcp-server python ..\..\scripts\mcp_call.py "$env:GATEWAY_URL" call RstMcp___who_am_i
     ```
 
-    `list` shows 33 tools: 10 `OpsApi___…` (one per `operationId` in the OpenAPI file), 22 `RstMcp___…`, and `x_amz_bedrock_agentcore_search`. `who_am_i` says `manager`, branch `12`: the interceptor passed **your** token to your server. Now compare the two ways to read live stock:
+    `list` shows 33 tools: 10 `OpsApi___…` (one per `operationId`, the name each operation has in the OpenAPI file), 22 `RstMcp___…`, and `x_amz_bedrock_agentcore_search`. Four of the `RstMcp___` tools are the promotions tools: they are listed but return an error, because the promotions service isn't connected on Runtime (M02 step 5). `who_am_i` says `manager`, branch `12`: the interceptor passed **your** token to your server. Now compare the two ways to read live stock:
 
     ```bash
     uv run --directory solutions/mcp-server python ../../scripts/mcp_call.py "$GATEWAY_URL" call RstMcp___get_current_stock branch_id=5
@@ -202,7 +217,7 @@ Tool names on the Gateway are `<target>___<tool>` (three underscores): `OpsApi__
 
     ```json
     "rst-gateway": {
-      "url": "https://<gateway id>.gateway.bedrock-agentcore.<region>.amazonaws.com/mcp",
+      "url": "<your Gateway URL, from: echo $GATEWAY_URL>",
       "headers": { "Authorization": "Bearer ${RST_MCP_TOKEN}" },
       "disabled": false
     }
@@ -214,19 +229,19 @@ Tool names on the Gateway are `<target>___<tool>` (three underscores): `OpsApi__
 
     ```bash
     python3 scripts/make_gateway_inputs.py rstday2
-    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier <gateway id> --query "items[].[name,targetId]" --output text
-    aws bedrock-agentcore-control update-gateway-target --gateway-identifier <gateway id> --target-id <OpsApi target id> \
+    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier $GATEWAY_ID --query "items[].[name,targetId]" --output text
+    aws bedrock-agentcore-control update-gateway-target --gateway-identifier $GATEWAY_ID --target-id <OpsApi target id> \
       --cli-input-json file://rstday2/gateway/target-ops-api.json
     ```
 
     ```powershell
     py scripts\make_gateway_inputs.py rstday2
-    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier <gateway id> --query "items[].[name,targetId]" --output text
-    aws bedrock-agentcore-control update-gateway-target --gateway-identifier <gateway id> --target-id <OpsApi target id> `
+    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier $env:GATEWAY_ID --query "items[].[name,targetId]" --output text
+    aws bedrock-agentcore-control update-gateway-target --gateway-identifier $env:GATEWAY_ID --target-id <OpsApi target id> `
       --cli-input-json file://rstday2/gateway/target-ops-api.json
     ```
 
-    The script also writes the two secret files again; delete them. No code changed, only the description: the analyst skill again.
+    The script also writes the two secret files again; delete them (the `rm` / `Remove-Item` line in step 3). No code changed, only the description: the analyst skill again.
 
 ## Checkpoint
 - `list-gateway-targets` shows `OpsApi` and `RstMcp` as `READY`.
