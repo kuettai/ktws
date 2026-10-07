@@ -59,3 +59,15 @@ def server_from_env(*, role: str | None = None, branch_id: int | None = None) ->
     if os.environ.get("MCP_URL"):
         return http_server()
     return stdio_server(role=role, branch_id=branch_id)
+
+
+def all_tools(client: MCPClient) -> list:
+    """Every tool the server offers. Servers send the list in pages (AgentCore Gateway: 30 per page),
+    and `list_tools_sync()` returns only one page, so follow the pagination token to the end."""
+    tools, token = [], None
+    while True:
+        page = client.list_tools_sync(pagination_token=token)
+        tools.extend(page)
+        token = getattr(page, "pagination_token", None)
+        if not token:
+            return tools

@@ -22,6 +22,7 @@ from pathlib import Path
 
 from rst_agent import ToolCallRecorder, ask, build_agent, http_server, stdio_server
 from rst_agent.agent import DEFAULT_MODEL_ID
+from rst_agent.connections import all_tools
 
 from evalset import HERE, date_values, load_questions
 
@@ -82,7 +83,7 @@ def main() -> None:
     questions.sort(key=lambda q: q["persona"])
     for persona_name, group in groupby(questions, key=lambda q: q["persona"]):
         with connect(persona_name, personas[persona_name]) as server:
-            tools = server.list_tools_sync()
+            tools = all_tools(server)
             for q in group:
                 print(f"{q['id']} [{persona_name}] {q['question']}")
                 result = run_question(tools, q, args.model_id)

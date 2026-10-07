@@ -26,6 +26,7 @@ from typing import Any
 from bedrock_agentcore.runtime import BedrockAgentCoreApp, RequestContext
 
 from rst_agent import ToolCallRecorder, build_agent, http_server
+from rst_agent.connections import all_tools
 from rst_agent.hooks import APPROVED, DECLINED
 
 app = BedrockAgentCoreApp()
@@ -44,7 +45,7 @@ def new_session(token: str | None) -> Session:
     client = http_server(token=token)
     client.start()
     recorder = ToolCallRecorder(printer=None)
-    agent = build_agent(client.list_tools_sync(), recorder=recorder)  # no approver: pauses for approval
+    agent = build_agent(all_tools(client), recorder=recorder)  # no approver: pauses for approval
     return Session(agent=agent, recorder=recorder, client=client)
 
 

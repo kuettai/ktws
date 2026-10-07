@@ -1,18 +1,16 @@
 # D2 M07 — Decision Matrix (30m)
 
-> **Preview** — this module has not yet been tested end to end.
-
 ## ECS vs AgentCore Runtime vs AgentCore Gateway
 
 | Factor | ECS (Day 1) | AgentCore Runtime | AgentCore Gateway |
 |---|---|---|---|
-| Code to write | MCP server + auth + infra | MCP server only | None for OpenAPI / Lambda / MCP targets |
+| Code to write | MCP server + auth + infra | MCP server only | None for OpenAPI and MCP server targets (a small interceptor to pass the user's token on) |
 | Infra to operate | ALB, ECS, certs, scaling | None | None |
 | Inbound auth | Our middleware | Built-in JWT authorizer | Built-in JWT authorizer |
 | Outbound credentials | Secrets Manager + code | Identity | Identity |
-| Fine-grained tool policy | Our code | Our code | Cedar policy |
-| Custom logic / composite tools | Full control | Full control | Limited (use Lambda or MCP target) |
-| Network control (VPC-only) | Full | Check current VPC options | Check current VPC options |
+| Fine-grained tool policy | Our code | Our code | Cedar rules on tool name, user claims and arguments |
+| Custom logic / composite tools | Full control | Full control | Limited (put it in an MCP server or Lambda target) |
+| Network control (VPC-only) | Full | VPC mode (runs in your subnets) | Private targets through VPC Lattice; HTTPS endpoint needed |
 | Cost model | Always-on tasks | Per use | Per use |
 
 ## Rules of thumb

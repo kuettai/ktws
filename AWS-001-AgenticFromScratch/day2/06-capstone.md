@@ -1,7 +1,5 @@
 # D2 M06 — Capstone (60m)
 
-> **Preview** — this module has not yet been tested end to end.
-
 ## Task (pairs)
 Pick a real analyst question set (from M00 capture or below). Deliver it end to end on AgentCore.
 
@@ -13,9 +11,26 @@ Suggested scenarios:
 
 ## Requirements
 - At least one new SQL tool following `sample-queries.md` patterns (add a new pattern if needed, reviewed by instructor).
-- Exposed through Gateway; works in Quick with user auth.
-- Branch scoping correct for a manager user.
-- Trace screenshot from Observability.
+- Exposed through the Gateway, and used from Kiro (`rst-gateway`) with a manager's token.
+- Branch scoping correct for a manager user. If the scenario changes data (scenario 2), a Gateway rule covers it.
+- A trace of one of your tool calls from `aws/spans` (M05 Part B).
+
+## Ship a new tool to the Gateway
+1. Write and test the tool locally (Day 1 way: Kiro, `uv run pytest`, Inspector).
+2. Copy the changed files into the Runtime project (`rstday2/app/RstMcp/`, as in M02 step 3), then `agentcore deploy -y` in `rstday2/`.
+3. Tell the Gateway to read the server's tool list again:
+
+    ```bash
+    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier <gateway id> --query "items[].[name,targetId]" --output text
+    aws bedrock-agentcore-control synchronize-gateway-targets --gateway-identifier <gateway id> --target-id-list <RstMcp target id>
+    ```
+
+    ```powershell
+    aws bedrock-agentcore-control list-gateway-targets --gateway-identifier <gateway id> --query "items[].[name,targetId]" --output text
+    aws bedrock-agentcore-control synchronize-gateway-targets --gateway-identifier <gateway id> --target-id-list <RstMcp target id>
+    ```
+
+4. With the policy engine on ENFORCE, a new tool is allowed by `signed_in_users.cedar`. If it changes data, add a rule for it (M05).
 
 ## Next: agents on Day 3
 No agent work today. Keep your capstone tools and Gateway endpoint: on Day 3 a Strands agent uses them as its tool source ([day3/05-deploy-agent.md](../day3/05-deploy-agent.md)), and your scenario can become the Day 3 capstone ([day3/06-capstone.md](../day3/06-capstone.md)).

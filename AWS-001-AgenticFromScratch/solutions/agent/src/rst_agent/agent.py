@@ -63,7 +63,7 @@ def build_agent(
 ) -> Agent:
     """Create the restaurant agent.
 
-    tools     MCP tools (client.list_tools_sync()) and/or @tool functions.
+    tools     MCP tools (connections.all_tools(client)) and/or @tool functions.
     approver  decides on write tools straight away. None means the agent pauses
               (stop_reason "interrupt") and ask() resolves the pause.
     recorder  a ToolCallRecorder to trace tool calls. Pass your own to read .calls afterwards.
