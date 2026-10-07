@@ -1,4 +1,4 @@
-# D1 M03 — Wrap an Internal API (75m)
+# D1 M03 — Wrap an Internal API (60m)
 
 Simulates the restaurant chain's existing internal apps. Two ways Kiro can build the MCP layer.
 
@@ -43,7 +43,7 @@ flowchart LR
 
 Open full size: [PNG](img/diagrams/03-wrap-internal-api-2.png) · [SVG](img/diagrams/03-wrap-internal-api-2.svg)
 
-## Exercise A — From contract (30m)
+## Exercise A — From contract (25m)
 
 Short on time, or watching an instructor walk-through? Skip to [Shortcut: use the finished tools](#shortcut-use-the-finished-tools).
 
@@ -57,7 +57,7 @@ Short on time, or watching an instructor walk-through? Skip to [Shortcut: use th
 3. Review Kiro's `requirements.md` / `design.md` before letting it generate tasks. Push back on any 1:1 mapping.
 4. Implement. Expected tools: `get_current_stock`, `list_low_stock_items`, `get_today_sales`, `list_orders_today`, `get_order`.
 
-## Exercise B — From code (30m)
+## Exercise B — From code (25m)
 1. Open `legacy-app/`. No docs, no spec.
 2. Paste this prompt into the Kiro chat panel:
 
@@ -106,7 +106,7 @@ Test in Inspector (M01 step 3): you should see `get_current_stock`, `list_low_st
 - `lib/scoping.py` (the branch limit) comes along because the finished tools use it. Participants normally build it in M06 Part E; with the shortcut you review it there instead.
 - Walk through the files in this order: `ops_tools.py` (one tool per question, the `_get` helper, error messages the model can read), then `promo_tools.py` (how the hidden traps below are handled: cents, the channel bitmask, `yyyymmdd` dates).
 
-## Wrap (15m)
+## Wrap (10m)
 - Contract-first more reliable; code-reading works but needs more review.
 - Tool design: 8 endpoints became ~5 tools. Why? Discuss first, then open the answer.
 
@@ -132,6 +132,7 @@ Test in Inspector (M01 step 3): you should see `get_current_stock`, `list_low_st
     - **No two tools answer the same thing**, such as `find_branch` and `GET /branches`.
 
     </details>
+
 - Write endpoints (`issueRefund`, `requestStockTransfer`) held back until auth exists → revisited Day 2 M05.
 
 ## Checkpoint

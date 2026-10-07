@@ -1,4 +1,4 @@
-# D1 M02 — Redshift Tools (90m)
+# D1 M02 — Redshift Tools (75m)
 
 Centrepiece module for analysts: SQL they know → MCP tools they own.
 
@@ -71,7 +71,7 @@ Open full size: [PNG](img/diagrams/02-redshift-tools-2.png) · [SVG](img/diagram
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Redshift Query Editor v2 with a sample query and its result · save as `img/m02-query-editor.png`
 
-2. **Whiteboard example → review (15m).** Show the original idea:
+2. **Whiteboard example → review (10m).** Show the original idea:
 
     ```
     function getRevenueByBranch(branch, date){
@@ -80,13 +80,13 @@ Open full size: [PNG](img/diagrams/02-redshift-tools-2.png) · [SVG](img/diagram
     ```
     Group finds the issues: injection, missing `GROUP BY`, base tables, no `LIMIT`.
 
-3. **First tool with Kiro (20m).** Paste this prompt into the Kiro chat panel:
+3. **First tool with Kiro (15m).** Paste this prompt into the Kiro chat panel:
 
     > Create an MCP tool `get_daily_branch_sales` in `mcp-server/tools/redshift_tools.py` using pattern 1 in `docs/sample-queries.md`.
 
     Review checklist: parameters via `:name`? `mcp.` schema only? date range validated? description follows `mcp-tool-design.md`?
 
-4. **Analysts build 2 more (30m).** First `find_branch`, then one of your choice. (Behind? See [Shortcut: use the finished tools](#shortcut-use-the-finished-tools).) Paste each prompt into the Kiro chat panel, review the change with the checklist, and test it in Inspector.
+4. **Analysts build 2 more (25m).** First `find_branch`, then one of your choice. (Behind? See [Shortcut: use the finished tools](#shortcut-use-the-finished-tools).) Paste each prompt into the Kiro chat panel, review the change with the checklist, and test it in Inspector.
 
     > Create an MCP tool `find_branch` in `mcp-server/tools/redshift_tools.py` using pattern 8 in `docs/sample-queries.md`. It takes `name_fragment` (part of a branch name, e.g. "bayside") and returns matching branches with their branch_id, so other tools can be called with an ID. Follow the steering rules and `mcp-tool-design.md`: bind parameters, a LIMIT, and a description that says when to use it.
 
@@ -149,7 +149,7 @@ Push-Location mcp-server; uv run pytest tests/test_sql_rules.py -v; Pop-Location
 Every tool should show `PASSED`. A failure names the rule that was broken.
 
 ## Instructor notes
-- Timing: 90m = 10 + 15 + 20 + 30 + 15. Step 5 runs as one shared demo on the instructor screen (participants watch, then try the Kiro chat question themselves). If behind, skip the steering-removal part of step 5.
+- Timing: 75m = 10 + 10 + 15 + 25 + 15. Step 5 runs as one shared demo on the instructor screen (participants watch, then try the Kiro chat question themselves). If behind, skip the steering-removal part of step 5.
 - If Data API latency is noticed (~1-3s), explain async execute/poll; fine for workshop.
 - Local AWS creds: the IAM role you use locally must be mapped to `mcp_reader` too, so local tests hit the same permissions as production. Deploy `RstDataStack` with `-c localDevRoleNames=<your IAM role name>`.
 - `LIMIT` cannot take a bind parameter. `top_n` style inputs are validated as int in Python and inlined — the one allowed exception, and a good review discussion.

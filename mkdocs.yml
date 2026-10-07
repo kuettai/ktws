@@ -77,6 +77,7 @@ nav:
           - M05 Deploy to ECS: AWS-001-AgenticFromScratch/day1/05-deploy-ecs.md
           - M06 Authentication: AWS-001-AgenticFromScratch/day1/06-auth.md
           - M07 End to end: AWS-001-AgenticFromScratch/day1/07-end-to-end.md
+          - M08 Skills and agents: AWS-001-AgenticFromScratch/day1/08-skills-and-agents.md
       - Day 2 - Amazon Bedrock AgentCore (preview):
           - M01 AgentCore overview: AWS-001-AgenticFromScratch/day2/01-agentcore-overview.md
           - M02 Runtime: AWS-001-AgenticFromScratch/day2/02-runtime.md

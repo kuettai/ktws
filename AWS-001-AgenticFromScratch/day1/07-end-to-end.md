@@ -46,3 +46,5 @@ Open full size: [PNG](img/diagrams/07-end-to-end-1.png) · [SVG](img/diagrams/07
 
 ## Bridge to Day 2
 What did we have to build and run ourselves? ALB, ECS, Cognito wiring, API wrapper code, auth middleware. Day 2: how much of that AgentCore removes.
+
+Next, in M08, you package a task as a **skill** and give it to Kiro and to a Quick agent that use these same tools.

@@ -1,4 +1,4 @@
-# D1 M05 — Deploy to ECS (45m)
+# D1 M05 — Deploy to ECS (30m)
 
 ## Objectives
 - Deploy MCP server to ECS Fargate with pre-built CDK.
@@ -94,7 +94,7 @@ Open full size: [PNG](img/diagrams/05-deploy-ecs-1.png) · [SVG](img/diagrams/05
 
     Use the **same** participant name on every later deploy (Module 06 too), and wherever the guides say `RstMcpStack`, read `RstMcpStack-<name>`.
 
-2. While it deploys, walk through the [architecture diagram](#architecture-diagram) (10m). For each box: what, why, what if missing (see the table under the diagram).
+2. While it deploys, walk through the [architecture diagram](#architecture-diagram) (10m, while the deploy runs). For each box: what, why, what if missing (see the table under the diagram).
 3. Still waiting: tour the ECS console, CloudWatch log groups, task role permissions, Secrets Manager.
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` ECS console: the cluster with mcp-server, mock-api and legacy-app services running · save as `img/m05-ecs-services.png`
@@ -113,5 +113,5 @@ Open full size: [PNG](img/diagrams/05-deploy-ecs-1.png) · [SVG](img/diagrams/05
 Remote endpoint answers in Inspector. It is **public and unauthenticated** right now (stack output says so) — move to M06 immediately. If the session breaks here, run `npx cdk destroy RstMcpStack` (shared account: `npx cdk destroy RstMcpStack-<name> -c participant=<name>`, never `--all`).
 
 ## Instructor notes
-- Measured deploy time: about 16 minutes for a first deploy (images, ECS, CloudFront). Redeploys that only change settings take 3–4 minutes. Start the deploy before the walkthrough, or the module overruns.
+- Measured deploy time: about 16 minutes for a first deploy (images, ECS, CloudFront). Redeploys that only change settings take 3–4 minutes. Start the deploy before the walkthrough, or the module overruns: in 30 minutes the walkthrough and the console tour happen while CloudFront deploys.
 - The first Redshift query after the workgroup has been idle can fail with "Internal error encountered". The reference server retries that error once (`lib/redshift.py`); if a participant's own server shows it, ask again.

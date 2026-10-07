@@ -102,7 +102,8 @@ def lint(page: str, text: str) -> list[str]:
         opens_fence = stripped.startswith("```") and not fence
         if not fence and (LIST_ITEM.match(line) or opens_fence) and prev.strip():
             p = prev.lstrip()
-            if not LIST_ITEM.match(prev) and not p.startswith(("|", "#", ">", "<", "```", "!!!")):
+            # Opening HTML tags (<details>, <summary>) may precede a list; a closing tag may not.
+            if not LIST_ITEM.match(prev) and (p.startswith("</") or not p.startswith(("|", "#", ">", "<", "```", "!!!"))):
                 problems.append(f"{page}:{n}: add a blank line before this line")
         if stripped.startswith("```"):
             fence = not fence

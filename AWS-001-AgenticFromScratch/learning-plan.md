@@ -23,6 +23,7 @@ By the end of the workshop, participants can:
 8. Explain the agent loop and build a Strands agent that uses the workshop's MCP tools for multi-step questions.
 9. Require human approval before an agent runs a write tool (`issue_refund`, `request_stock_transfer`), on top of Cedar policy.
 10. Test agent behaviour with a 15–20 question set: score tool choice and answer accuracy, and use the score to drive changes.
+11. Write a skill (`SKILL.md`) and reuse it across agents: Kiro, an Amazon Quick custom chat agent, and on Day 3 a Strands agent.
 
 ## Environment
 
@@ -69,12 +70,13 @@ Target: 08:30–17:15 (7h15 content, 1h30 breaks).
 | — | Python reading warm-up (recap of [primer](prework/python-reading-primer.md)) | 15m | Read a tool function: decorator, type hints, docstring, parameterized SQL |
 | 00 | [MCP fundamentals](day1/00-mcp-fundamentals.md) | 30m | Understand host / client / server, tools / resources / prompts, stdio vs Streamable HTTP |
 | 01 | [Hello MCP](day1/01-hello-mcp.md) | 40m | Run a local stdio MCP server, test in MCP Inspector, use it from Kiro |
-| 02 | [Redshift tools](day1/02-redshift-tools.md) | 90m | Turn SQL into parameterized MCP tools via Kiro, gated by steering files |
-| 03 | [Wrap internal API](day1/03-wrap-internal-api.md) | 75m | Generate MCP tools from OpenAPI contract (A) and from legacy code (B) |
+| 02 | [Redshift tools](day1/02-redshift-tools.md) | 75m | Turn SQL into parameterized MCP tools via Kiro, gated by steering files |
+| 03 | [Wrap internal API](day1/03-wrap-internal-api.md) | 60m | Generate MCP tools from OpenAPI contract (A) and from legacy code (B) |
 | 04 | [Go remote](day1/04-go-remote.md) | 30m | Switch to stateless Streamable HTTP, run in a container |
-| 05 | [Deploy to ECS](day1/05-deploy-ecs.md) | 45m | Deploy via pre-built CDK; understand ALB, task role, secrets |
+| 05 | [Deploy to ECS](day1/05-deploy-ecs.md) | 30m | Deploy via pre-built CDK; understand ALB, task role, secrets |
 | 06 | [Authentication](day1/06-auth.md) | 90m | 2LO + 3LO with Cognito; branch-scoped data; connect Quick and Kiro |
 | 07 | [End-to-end](day1/07-end-to-end.md) | 20m | Quick + Kiro answer combined Redshift + API question |
+| 08 | [Skills and agents](day1/08-skills-and-agents.md) | 45m | Write a skill (`SKILL.md`); use it in Kiro and in a Quick custom chat agent with your MCP server |
 
 **Day 1 schedule**
 
@@ -84,14 +86,15 @@ Target: 08:30–17:15 (7h15 content, 1h30 breaks).
 | 08:45–09:15 | M00 MCP fundamentals |
 | 09:15–09:55 | M01 Hello MCP |
 | 09:55–10:10 | Break |
-| 10:10–11:40 | M02 Redshift tools |
-| 11:40–12:55 | M03 Wrap internal API |
-| 12:55–13:55 | Lunch |
-| 13:55–14:25 | M04 Go remote |
-| 14:25–15:10 | M05 Deploy to ECS |
-| 15:10–15:25 | Break |
-| 15:25–16:55 | M06 Authentication |
-| 16:55–17:15 | M07 End-to-end |
+| 10:10–11:25 | M02 Redshift tools |
+| 11:25–12:25 | M03 Wrap internal API |
+| 12:25–13:25 | Lunch |
+| 13:25–13:55 | M04 Go remote |
+| 13:55–14:25 | M05 Deploy to ECS |
+| 14:25–14:40 | Break |
+| 14:40–16:10 | M06 Authentication |
+| 16:10–16:30 | M07 End-to-end |
+| 16:30–17:15 | M08 Skills and agents |
 
 **Day 1 checkpoints**
 
@@ -99,6 +102,7 @@ Target: 08:30–17:15 (7h15 content, 1h30 breaks).
 - After M03: at least 3 API tools work; group compares Exercise A vs B output.
 - After M05: `https://<alb>/mcp` responds (401 is fine once auth is on).
 - After M06: Quick user signed in as `manager_branch_12` only sees branch 12 data.
+- After M08: Kiro and the Quick `Branch review assistant` both produce the weekly review with the `weekly-branch-review` skill.
 
 ---
 
