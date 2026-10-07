@@ -113,6 +113,8 @@ In the AWS console, open **Amazon Cognito → User pools → `rst-workshop`** (t
 > - **The test users are shared**: everyone signs in as `manager_branch_12`, `analyst_hq` and so on.
 > - **Step 7:** use the shared-account deploy command shown there.
 
+**Who does these steps:** every participant does steps 1–7 in their own account (shared account: everyone except step 1, see above). **No Amazon Quick in your event?** Skip steps 3 and 4 (the two Quick clients) and Part C, create a style only for `kiro-user` in step 6, and in step 7 pass just the `kiro-user` ID as `oidcAllowedAudiences`.
+
 1. **Domain.** In the left menu choose **Branding → Domain**. Next to **Domain**, choose **Actions → Create Cognito domain**. Enter a **domain prefix**, for example `rst-mcp-<yourname>` (it must be unique in the region), set **Branding version** to **Managed login**, and choose **Create**. The full domain, `https://<prefix>.auth.<region>.amazoncognito.com`, is your **Cognito domain**: note it for Parts C and D. The same from a terminal: `aws cognito-idp create-user-pool-domain --user-pool-id <user pool id> --domain <prefix> --managed-login-version 2`.
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: domain settings with managed login selected · save as `img/m06-cognito-domain.png`
