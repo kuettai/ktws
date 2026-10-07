@@ -80,12 +80,35 @@ Open full size: [PNG](img/diagrams/04-identity-1.png) · [SVG](img/diagrams/04-i
 
     Discuss: the Ops API only ever sees the API key. Which way would let it check the user itself? Is that worth it, or is a Gateway policy (M05) enough?
 
+    <details>
+    <summary>Suggested answer</summary>
+
+    - **Which way:** pass the user's identity to the API. Either forward the user's token (as the interceptor does for `RstMcp`; then the API must check Cognito tokens itself) or, better, **token exchange**: the Gateway swaps the user's token for a new one made for the Ops API, still naming the user. With either, the API can apply "own branch only" itself.
+    - **Is it worth it?** Only if the API is also used **without** the Gateway (other apps, batch jobs) or the rule depends on data only the API has (for example "orders this user created"). Then the check must live in the API, or it can be bypassed.
+    - **Is a Gateway policy enough?** For this workshop, yes: every AI client reaches the Ops API through the Gateway, the rule only needs the token's `role` and `branch_id` and the tool's `branchId` argument, and M05 enforces it in one place. The API key then means "the Gateway may call me", and the Gateway decides for whom. In production, also make sure nobody can call the API directly with that key (keep the key in the vault only, and the API private).
+
+    </details>
+
 ## Checkpoint
 You can say where the Ops API key and the `quick-s2s` secret are stored, which role may read them, and why `RstMcp___who_am_i` shows your user while the Ops API never sees one.
 
 ## Discussion
 - The Runtime server from M02 still has the Ops API key as a plain setting. Two ways to remove it: call the Ops API through the Gateway instead, or read the key from the vault in code (with the AgentCore Identity SDK). Which is simpler for your team to run?
 - Rotating the key: update the vault entry (`update-api-key-credential-provider`), no redeploy of the Gateway. Compare with Day 1 (new secret value, then restart the ECS tasks).
+
+<details>
+<summary>Suggested answers</summary>
+
+- **Removing the key from the Runtime server.**
+    - *Through the Gateway:* the server calls `OpsApi___...` tools on the Gateway (with the user's token) instead of the API. No key in the server at all, and M05's rules apply to its calls too. Cost: the server now depends on the Gateway, and one more network hop per call.
+    - *From the vault in code:* the server asks AgentCore Identity for the key when it needs it (the Identity SDK does this with a few lines). The key never appears in settings, and the server's role must be allowed to read it.
+    - *Simpler to run:* usually the Gateway route, because it adds no code and no extra permission, and keeps one place where credentials live. Keep calling the API directly only if latency matters.
+- **Rotating the key.** Two places know the key: the API that checks it, and whoever sends it.
+    - *Day 2:* set the new key on the API (here: the `OpsApiKey` secret and a restart of the `mock-api` service), then `update-api-key-credential-provider --name rst-ops-api-key --api-key <new key>`. The Gateway uses the new key on its next call, with no Gateway change. The Runtime server's `OPS_API_KEY` setting must also change (`configure_runtime.py`, then `agentcore deploy`): one more reason to remove it.
+    - *Day 1:* new secret value, then restart the ECS tasks of every service that reads it.
+    - *Lesson:* the fewer places hold a copy of a secret, the easier and safer rotation is. The vault makes the Gateway's copy a single entry.
+
+</details>
 
 ## Instructor notes
 - 3-legged OAuth is shown as discussion only: it needs a second identity provider with consent screens and a callback URL registered in it. If you want to demo it, see *Outbound auth → OAuth 2.0 authorization code* in the AgentCore Gateway docs.
