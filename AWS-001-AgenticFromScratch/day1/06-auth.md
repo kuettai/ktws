@@ -227,7 +227,21 @@ Field-by-field reference: [docs/auth-options.md](../docs/auth-options.md#amazon-
 4. Optional: second integration with service authentication `quick-s2s` (client ID, secret, token URL).
 
 ## Part D — Connect Kiro (10m)
-**Option 1 (preferred): Kiro OAuth.** Enable `rst-remote-ecs` in `.kiro/settings/mcp.json` with `oauth.clientId` = `kiro-user`, pinned `redirectUri`, `oauthScopes: ["openid", "<McpUrl>/read"]`. Kiro opens the browser; sign in as `manager_branch_12`.
+**Option 1 (preferred): Kiro OAuth.** In `.kiro/settings/mcp.json`, fill in `rst-remote-ecs` and set `"disabled": false`. Replace `<McpUrl>` with the **whole** `McpUrl` (it already starts with `https://`; don't add another), and `<kiro-user client id>` with the ID from step 6:
+
+```json
+"rst-remote-ecs": {
+  "url": "https://d123abc.cloudfront.net/mcp",
+  "oauth": {
+    "clientId": "<kiro-user client id>",
+    "redirectUri": "http://localhost:7778/oauth/callback",
+    "oauthScopes": ["openid", "https://d123abc.cloudfront.net/mcp/read"]
+  },
+  "disabled": false
+}
+```
+
+Save. Kiro opens the browser; sign in as `manager_branch_12`. "Connection failed" with no browser window usually means a wrong `url` (check for `https://https://`).
 
 **Option 2 (fallback): bearer token.**
 

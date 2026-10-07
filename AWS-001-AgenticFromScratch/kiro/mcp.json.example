@@ -28,20 +28,20 @@
       "disabled": true
     },
     "rst-remote-ecs": {
-      "url": "https://<distribution-id>.cloudfront.net/mcp",
+      "url": "<McpUrl>",
       "oauth": {
         "clientId": "<kiro-user client id>",
         "redirectUri": "http://localhost:7778/oauth/callback",
         "oauthScopes": [
           "openid",
-          "https://<distribution-id>.cloudfront.net/mcp/read"
+          "<McpUrl>/read"
         ]
       },
       "disabled": true,
-      "_comment": "Kiro sends the server URL as the OAuth 'resource', so the scope must be '<McpUrl>/read' (RstAuthStack output ReadScope, deployed with -c mcpResourceUrl=<McpUrl>)."
+      "_comment": "Replace <McpUrl> with the whole McpUrl output, e.g. https://d123abc.cloudfront.net/mcp (do not add another https://). Kiro sends the server URL as the OAuth 'resource', so the scope must be exactly <McpUrl>/read."
     },
     "rst-remote-ecs-token": {
-      "url": "https://<distribution-id>.cloudfront.net/mcp",
+      "url": "<McpUrl>",
       "headers": {
         "Authorization": "Bearer ${RST_MCP_TOKEN}"
       },
