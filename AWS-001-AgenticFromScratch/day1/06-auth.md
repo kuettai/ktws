@@ -127,20 +127,28 @@ In the AWS console, open **Amazon Cognito → User pools → `rst-workshop`** (t
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: `quick-user` app client, login pages settings (grant type, scopes, callback URL) · save as `img/m06-app-client-quick-user.png`
 
-4. **App client `quick-s2s`** (Quick with no user). **Create app client**, **Application type** **Machine-to-machine application**, name `quick-s2s`, **Create app client**. If the console doesn't ask for scopes while creating, open the client → **Login pages → Edit** and under **Custom scopes** choose **`<McpUrl>/read`**, then **Save changes**. It uses the client credentials grant.
-5. **App client `kiro-user`** (Kiro and `get_token.py` sign users in). **Create app client**, **Application type** **Single-page application** (public, no secret), name `kiro-user`. The create screen has only one **Return URL** box: enter `http://localhost:7778/oauth/callback` (Kiro), then **Create app client**. Add the second URL afterwards: on the client's page, under **Login pages**, choose **Edit**; under **Allowed callback URLs** choose **Add another URL** and enter `http://localhost:8765/callback` (`get_token.py`). On the same page set **OAuth grant types** = **Authorization code grant**; **OpenID Connect scopes** = **openid**; **Custom scopes** = **`<McpUrl>/read`**; **Save changes**.
+4. **App client `quick-s2s`** (Quick with no user). **Create app client**, **Application type** **Machine-to-machine application**, name `quick-s2s`, **Create app client**. The console then creates a **Default M2M Resource Server** for you and gives the client its scope (`default-m2m-resource-server-…/read`). That is the wrong scope: open the client → **Login pages → Edit**, under **Custom scopes** untick the default one and tick **`<McpUrl>/read`**, then **Save changes**. It uses the client credentials grant. You can delete the unused default resource server under **Resource servers**.
+5. **App client `kiro-user`** (Kiro and `get_token.py` sign users in). **Create app client**, **Application type** **Single-page application** (public, no secret), name `kiro-user`. The create screen has only one **Return URL** box: enter `http://localhost:7778/oauth/callback` (Kiro), then **Create app client**. Add the second URL afterwards: on the client's page, under **Login pages**, choose **Edit**; under **Allowed callback URLs** choose **Add another URL** and enter `http://localhost:8765/callback` (`get_token.py`). Both are **`http`**, not `https`: Cognito allows plain `http` only for `localhost`, and the local listeners don't speak HTTPS. On the same page set **OAuth grant types** = **Authorization code grant**; **OpenID Connect scopes** = **openid** (the ticked `email` and `phone` can stay); **Custom scopes** = tick **`<McpUrl>/read`** (it is **not** ticked by default, and without it Kiro's sign-in fails with `invalid_scope`); **Save changes**.
 6. **Managed login style for each client that signs users in** (`quick-user`, `kiro-user`): **Branding → Managed login**, under **Styles** choose **Create a style**, choose the app client, and save with the Cognito defaults (the **Launch branding editor** step is optional). Without a style the login page shows "Login pages unavailable".
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: Managed login, style created for `kiro-user` · save as `img/m06-managed-login-style.png`
 
-    List the three client IDs for step 7:
+    Check all three clients and list their IDs for step 7. Each must show the scope `<McpUrl>/read` (not a `default-m2m-resource-server` one), and `kiro-user` the two `http://localhost` URLs:
 
     ```bash
-    aws cognito-idp list-user-pool-clients --user-pool-id <user pool id> --query "UserPoolClients[].[ClientName,ClientId]" --output table
+    POOL=<user pool id>
+    for id in $(aws cognito-idp list-user-pool-clients --user-pool-id $POOL --query "UserPoolClients[].ClientId" --output text); do
+      aws cognito-idp describe-user-pool-client --user-pool-id $POOL --client-id $id \
+        --query "UserPoolClient.{name:ClientName,id:ClientId,flows:AllowedOAuthFlows,scopes:AllowedOAuthScopes,callbacks:CallbackURLs}"
+    done
     ```
 
     ```powershell
-    aws cognito-idp list-user-pool-clients --user-pool-id <user pool id> --query "UserPoolClients[].[ClientName,ClientId]" --output table
+    $Pool = "<user pool id>"
+    foreach ($id in (aws cognito-idp list-user-pool-clients --user-pool-id $Pool --query "UserPoolClients[].ClientId" --output text).Split()) {
+      aws cognito-idp describe-user-pool-client --user-pool-id $Pool --client-id $id `
+        --query "UserPoolClient.{name:ClientName,id:ClientId,flows:AllowedOAuthFlows,scopes:AllowedOAuthScopes,callbacks:CallbackURLs}"
+    }
     ```
 
 7. Redeploy with auth on, from the `infra/` folder (as in M05). `oidcIssuer` is built from your **region** and **user pool ID**; `oidcAllowedAudiences` is the three client IDs, comma-separated, no spaces. For example, with user pool `us-east-1_AbCdEf123`: `-c oidcIssuer=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_AbCdEf123`.
@@ -289,6 +297,7 @@ Cognito remembers the last sign-in in the browser, so the next sign-in can silen
 - Biggest risk module. Pre-validate Quick + Cognito callback flow in the exact workshop region.
 - Tested end to end: Kiro IDE OAuth and Quick web user auth against Cognito with the resource-bound scope above. Quick service auth (`quick-s2s` with Quick's `resource` parameter) is not yet tested.
 - "custom scopes requested for resource-binding must be assigned to the resource being requested" = the resource server identifier is not the `McpUrl`.
+- `error=invalid_request&error_description=invalid_scope` on the Kiro callback = the client doesn't have the scope Kiro asked for: tick `<McpUrl>/read` under **Custom scopes** on `kiro-user` (step 5), and check `oauthScopes` in `mcp.json` has no `https://https://`.
 - Kiro IDE and Kiro CLI can't both sign in at once: both use redirect port 7778, and whichever runs first holds it ("Address already in use").
 - Tokens expire after 1h; re-run `get_token.py`.
 - `who_am_i` returning `staff` with no branch = pre-token trigger not attached, or user missing attributes.
