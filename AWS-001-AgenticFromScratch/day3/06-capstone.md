@@ -1,7 +1,5 @@
 # D3 M06 — Capstone (45m)
 
-> **Preview** — this module has not yet been tested end to end.
-
 ## Task (pairs)
 Take one restaurant scenario (your Day 2 capstone, or one below) and deliver it as an agent: it plans, calls the tools, asks before changing data, and has a test score.
 

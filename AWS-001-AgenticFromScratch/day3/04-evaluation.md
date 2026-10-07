@@ -1,7 +1,5 @@
 # D3 M04 — Evaluation (90m)
 
-> **Preview** — this module has not yet been tested end to end.
-
 ## Objectives
 - Write test questions the way you write a report: question, expected tool, expected answer from your own SQL.
 - Score a run on tool choice, parameters and answer accuracy.
@@ -77,7 +75,7 @@ Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full 
     uv run python run_evals.py --label "baseline"
     uv run python score.py results/latest.json
     ```
-    Each question gets a fresh agent, signed in as its persona. Every write action is **declined**, so a run never changes data. Each run is kept in `results/<time>.json`; `latest.json` is the most recent.
+    If the starter set already scores close to 100%, good: your own questions from step 3 are where the failures (and the learning) are. Each question gets a fresh agent, signed in as its persona. Every write action is **declined**, so a run never changes data. Each run is kept in `results/<time>.json`; `latest.json` is the most recent.
 
 6. **Read the scorecard (10m).** Go row by row, then look at the four totals.
 

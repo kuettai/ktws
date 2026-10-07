@@ -1,7 +1,5 @@
 # D3 M03 — Human Approval (60m)
 
-> **Preview** — this module has not yet been tested end to end.
-
 ## Objectives
 - Make the agent stop before any action that changes data, until a person approves or declines.
 - Use both approval modes: ask straight away, or pause and resume.
@@ -13,7 +11,7 @@
 |---|---|---|
 | Question it answers | **Is this caller allowed** to do this at all? | **Does a person want this** specific action now? |
 | Decided by | Rules written in advance | A person, each time |
-| Example | Staff can never refund. A manager can refund only at their own branch | Manager confirms: refund order 20261001000120045, USD 12.50, "cold food" |
+| Example | Staff can never refund. A manager can refund only at their own branch | Manager confirms: refund order 202610010120060, USD 12.90, "cold food" |
 | Without it | Anyone can do anything | The model acts on a misread request, wrong order or wrong amount |
 
 A person approving does **not** grant permission. A declined call never runs. An approved call still goes through the server checks and policy, which can still refuse it.

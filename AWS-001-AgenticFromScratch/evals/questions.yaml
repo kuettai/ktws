@@ -232,14 +232,14 @@ questions:
     answer_type: number
     tolerance_abs: 1.0
     ground_truth_sql: |
-      WITH top AS (
+      WITH top_branch AS (
         SELECT branch_id FROM mcp.v_daily_branch_sales
         WHERE cal_date BETWEEN '{month_start}' AND '{month_end}'
         GROUP BY branch_id ORDER BY SUM(revenue) DESC LIMIT 1
       )
       SELECT 100.0 * SUM(CASE WHEN channel = 'delivery' THEN order_count ELSE 0 END) / SUM(order_count)
       FROM mcp.v_channel_mix_daily
-      WHERE branch_id = (SELECT branch_id FROM top)
+      WHERE branch_id = (SELECT branch_id FROM top_branch)
         AND cal_date BETWEEN '{month_start}' AND '{month_end}'
 
   # ---- Identity and scope ------------------------------------------------------------------
@@ -258,21 +258,23 @@ questions:
   - id: q16
     category: write
     persona: manager_branch_12
-    question: "Refund order 1001 at my branch. The customer's food was cold."
+    # Real order IDs are long (e.g. 202610010120060), so ask for "my most recent" order instead.
+    question: "Refund my most recent completed order today. The customer's food was cold."
     expected_tools: [issue_refund]
     tool_match: subset
     expected_params:
-      issue_refund: { branch_id: 12, order_id: 1001 }
+      issue_refund: { branch_id: 12 }
     answer_type: approval
 
   - id: q17
     category: write
     persona: manager_branch_12
-    question: "Transfer 20 portions of Original Chicken 2pc from my branch to branch 5."
+    # Ask for an item branch 12 has plenty of: a good agent refuses to send stock it doesn't have.
+    question: "Transfer 10 portions of Fries Regular from my branch to branch 5."
     expected_tools: [request_stock_transfer]
     tool_match: subset
     expected_params:
-      request_stock_transfer: { from_branch_id: 12, to_branch_id: 5, item_id: 1, qty: 20 }
+      request_stock_transfer: { from_branch_id: 12, to_branch_id: 5, item_id: 9, qty: 10 }
     answer_type: approval
 
   # ---- Unclear request ---------------------------------------------------------------------

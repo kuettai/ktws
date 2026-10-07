@@ -27,7 +27,7 @@ from evalset import HERE, date_values, load_questions
 def redshift_scalar(sql: str):
     import boto3
 
-    client = boto3.client("redshift-data")
+    client = boto3.client("redshift-data", region_name=os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION"))
     target = {"Database": os.environ["REDSHIFT_DATABASE"]}
     if workgroup := os.environ.get("REDSHIFT_WORKGROUP"):
         target["WorkgroupName"] = workgroup

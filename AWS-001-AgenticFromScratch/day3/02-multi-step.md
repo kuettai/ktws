@@ -1,7 +1,5 @@
 # D3 M02 — Multi-step Reasoning (45m)
 
-> **Preview** — this module has not yet been tested end to end.
-
 ## Objectives
 - Answer one question that needs Redshift and live API tools together, in one run.
 - Read the agent's plan from the recorder.

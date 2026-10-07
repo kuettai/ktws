@@ -31,7 +31,9 @@ class QueryError(ToolError):
 def _data_api():
     global _client
     if _client is None:
-        _client = boto3.client("redshift-data")
+        # Pass the region on: boto3 reads AWS_DEFAULT_REGION or the profile's region, not AWS_REGION.
+        region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+        _client = boto3.client("redshift-data", region_name=region)
     return _client
 
 

@@ -1,7 +1,7 @@
 """AgentCore Runtime entrypoint for the restaurant agent (Day 3, Module 05).
 
-    agentcore configure -e runtime_app.py ...
-    agentcore deploy --env MCP_URL=<Day 2 Gateway MCP URL>
+    Deployed with the AgentCore CLI (Day 3 Module 05): agentcore add agent --type byo
+    --entrypoint runtime_app.py ..., with MCP_URL (the Day 2 Gateway URL) in envVars.
 
 Each Runtime session keeps its own agent in memory, so a conversation carries on across
 invocations with the same session ID, and a paused write action can be answered later.
@@ -17,13 +17,19 @@ Responses:
 
 The caller's bearer token (Runtime inbound JWT) is forwarded to the Gateway, so the tools
 see the real user and branch scoping still applies. This needs Runtime to pass the
-Authorization header through: agentcore configure --request-header-allowlist Authorization.
+Authorization header through: agentcore add agent ... --request-header-allowlist Authorization.
 """
+import json
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp, RequestContext
+
+# AgentCore Runtime installs the dependencies but not this project itself, so make src/ importable.
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
 from rst_agent import ToolCallRecorder, build_agent, http_server
 from rst_agent.connections import all_tools
@@ -57,6 +63,20 @@ def _bearer(headers: dict[str, str] | None) -> str | None:
     return auth.removeprefix("Bearer ").strip() or None
 
 
+def _unwrap(payload: dict) -> dict:
+    """`agentcore invoke '<text>'` always sends {"prompt": "<text>"}. If that text is itself a JSON
+    object, such as {"approve": false}, use the object as the payload."""
+    prompt = payload.get("prompt")
+    if isinstance(prompt, str) and prompt.lstrip().startswith("{"):
+        try:
+            inner = json.loads(prompt)
+        except ValueError:
+            return payload
+        if isinstance(inner, dict):
+            return inner
+    return payload
+
+
 def _reply(session: Session, result: Any) -> dict:
     calls = list(session.recorder.calls)
     if result.stop_reason == "interrupt":
@@ -72,6 +92,7 @@ def handle(
     token: str | None,
     factory: Callable[[str | None], Session] = new_session,
 ) -> dict:
+    payload = _unwrap(payload)
     session = SESSIONS.get(session_id)
     if session is None:
         session = SESSIONS[session_id] = factory(token)

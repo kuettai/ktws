@@ -1,7 +1,5 @@
 # D3 M07 — Wrap-up (15m)
 
-> **Preview** — this module has not yet been tested end to end.
-
 ## Three days in one table
 
 | Day | You built | You own (analyst skill) | Platform / security own |

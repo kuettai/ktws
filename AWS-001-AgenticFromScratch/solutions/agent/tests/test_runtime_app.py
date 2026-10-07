@@ -55,6 +55,15 @@ def test_write_pauses_then_follows_the_person(approve, executed):
     assert len(EXECUTED) == executed
 
 
+def test_approval_sent_as_prompt_text_like_agentcore_invoke():
+    """`agentcore invoke '{"approve": false}'` arrives as {"prompt": '{"approve": false}'}."""
+    factory = factory_for([[REFUND], "Not carried out."])
+    runtime_app.handle({"prompt": "Refund order 1001, cold food"}, "s1", "tok", factory)
+    out = runtime_app.handle({"prompt": '{"approve": false}'}, "s1", "tok", factory)
+    assert out["status"] == "done"
+    assert EXECUTED == []
+
+
 def test_new_prompt_blocked_while_approval_pending():
     factory = factory_for([[REFUND], "x"])
     runtime_app.handle({"prompt": "Refund order 1001"}, "s1", "tok", factory)

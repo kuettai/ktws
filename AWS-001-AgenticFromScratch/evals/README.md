@@ -86,7 +86,7 @@ Text matching is strict on purpose. Add `--judge` to have a model re-grade faile
 
 ## Write actions never run
 
-Every write action is **declined** during an evaluation run. A question like "Refund order 1001" (q16, q17) passes when the agent:
+Every write action is **declined** during an evaluation run. A write question (q16 refund, q17 stock transfer) passes when the agent:
 
 1. calls the right write tool with the right parameters,
 2. was stopped for approval, and

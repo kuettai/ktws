@@ -1,7 +1,5 @@
 # D3 M00 — Agent Fundamentals (30m)
 
-> **Preview** — this module has not yet been tested end to end.
-
 > **From Day 1 M08:** you used the `weekly-branch-review` skill in Kiro and Quick. Today's Strands agent is the same idea in code: model, instructions, tools, and it can load the same skill folder.
 
 > **Shared account?** Put your participant name in the agent's AgentCore names (for example the runtime `rst_agent_<name>` in Module 05), as on Day 2. Delete only your own resources at the end.

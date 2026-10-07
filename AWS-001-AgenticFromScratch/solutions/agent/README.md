@@ -74,7 +74,7 @@ agent> Spicy Chicken Burger (1,240 sold). You have 14 left, which is below the r
 - **Without one** (a web app, AgentCore Runtime): the agent stops with `stop_reason == "interrupt"` and returns the pending action. Show it to a person, then resume:
 
     ```python
-    result = agent("Refund order 1001 at branch 12, the food was cold")
+    result = agent("Refund my most recent completed order at branch 12, the food was cold")
     if result.stop_reason == "interrupt":
         pending = result.interrupts[0]          # pending.reason = {"tool", "input", "message"}
         answer = "approved" if person_says_yes(pending.reason) else "declined"

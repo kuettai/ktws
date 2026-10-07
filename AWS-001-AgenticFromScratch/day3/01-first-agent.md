@@ -1,7 +1,5 @@
 # D3 M01 — First Agent (60m)
 
-> **Preview** — this module has not yet been tested end to end.
-
 ## Objectives
 - Run a Strands agent on the Day 1 MCP server tools.
 - Add a tool-call recorder with Kiro so every step is printed.
@@ -27,7 +25,8 @@
     cd agent; uv sync
     uv run pytest tests/test_lab1_recorder.py  # fails now: that is the TODO
     ```
-    The local MCP server reads Redshift and Ops API settings from `solutions/mcp-server/.env` (copy `.env.example`).
+    - Finch instead of Docker: `finch compose up -d`.
+    - The local MCP server reads Redshift and Ops API settings from `solutions/mcp-server/.env`. Create it from the example and set `AWS_PROFILE` to your profile (as for `mcp-server/.env` on Day 1): `cp solutions/mcp-server/.env.example solutions/mcp-server/.env` (PowerShell: `Copy-Item solutions\mcp-server\.env.example solutions\mcp-server\.env`), run from the workshop folder before `cd agent`.
 
 2. **Read the agent (10m).** Open `src/rst_agent/agent.py` with the primer checklist in mind.
     - `SYSTEM_PROMPT`: the house rules. Plan first, a tool for every number, which tools are history and which are live, ask if unclear.
@@ -45,7 +44,7 @@
     $env:AWS_PROFILE = "workshop"; $env:AWS_REGION = "<workshop region>"
     uv run python -m rst_agent --role manager --branch 12
     ```
-    Ask: *What are my best sellers this month?* It answers, but you can't see how. That's the gap.
+    Ask: *What are my best sellers this month?* It answers, but you can't see how. That's the gap. (The mock history ends the day before the workshop. If "this month" has only a few days, the agent may say so and offer last month instead.)
 
 4. **Recorder with Kiro (20m).** Open `src/rst_agent/hooks.py`, `ToolCallRecorder`. Prompt Kiro with:
     > Complete the TODOs in `ToolCallRecorder._before` and `_after` in `src/rst_agent/hooks.py`. Follow the comments exactly and make `tests/test_lab1_recorder.py` pass. Don't change the tests.
