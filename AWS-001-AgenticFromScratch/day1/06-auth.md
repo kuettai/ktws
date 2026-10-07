@@ -281,11 +281,14 @@ Either way: call `who_am_i` from Kiro chat.
 
 The server now knows **who** is calling (`who_am_i` shows the role and branch from the token), but your tools don't use it yet: a branch manager can still read any branch. In this part you make the tools respect the caller's identity, then prove it with two users.
 
-1. **See the gap (2m).** In Kiro, connected to `rst-remote-ecs` as `manager_branch_12`, ask: *"Show revenue for branch 5 last week."* You get branch 5's numbers. A manager of branch 12 should not see them.
+1. **See the gap (2m).** In Kiro, connected to `rst-remote-ecs` as `manager_branch_12`, ask: *"Show revenue for branch 5 last week."*
 
-2. **Ask Kiro to add branch scoping (10m).** In the Kiro chat panel:
+    - **You get branch 5's numbers:** that's the gap. A manager of branch 12 should not see them. Go on to step 2.
+    - **You get branch 12, or an error:** Kiro already added a check while writing your tools in M02–M03, because `sql-rules.md` (always loaded) has a "Branch scoping" section. Check it is not just the model refusing: the answer should come from the **tool** (a `note` or an error in the tool result), not only from Kiro's chat text. Then open your `tools/*.py` and look for `current_caller()`. Typically the check is copied into each tool, and the Redshift and Operations API tools behave differently (one swaps in your branch with a note, the other raises an error). Do step 2 anyway, as a refactor: one helper, one behaviour, so a new tool can't forget it.
 
-    *"Implement branch scoping as described in the 'Branch scoping' section of `.kiro/steering/sql-rules.md`. Create `mcp-server/lib/scoping.py` with `scoped_branch(requested_branch_id)`, which returns the branch to query and a note (or None), and `require_hq(action)`. Use `current_caller()` from `lib/auth.py`. Call `scoped_branch` in every tool in `tools/` that takes a `branch_id`, and add the note to the tool result. Make cross-branch rankings (`get_top_branches`) HQ only with `require_hq`. Add unit tests."*
+2. **Ask Kiro to add branch scoping, or move your existing checks into one helper (10m).** In the Kiro chat panel:
+
+    *"Implement branch scoping as described in the 'Branch scoping' section of `.kiro/steering/sql-rules.md`. Create `mcp-server/lib/scoping.py` with `scoped_branch(requested_branch_id)`, which returns the branch to query and a note (or None), and `require_hq(action)`. Use `current_caller()` from `lib/auth.py`. Call `scoped_branch` in every tool in `tools/` that takes a `branch_id`, and add the note to the tool result. Make cross-branch rankings (`get_top_branches`) HQ only with `require_hq`. Replace any branch checks already in the tools with these helpers. Add unit tests."*
 
     Review the change like code:
 
