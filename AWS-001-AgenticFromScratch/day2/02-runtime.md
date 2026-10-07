@@ -223,6 +223,10 @@ Open full size: [PNG](img/diagrams/02-runtime-1.png) · [SVG](img/diagrams/02-ru
 
     In a new chat: *"Who am I, and what were my top 3 items last month?"* Check the tool calls go to `rst-agentcore-runtime`.
 
+    > **A second way to sign in.** On Day 1, Kiro signed you in itself (OAuth: it opened the Cognito login page). Here you use the other common method: a **bearer token** you get once (`get_token.py`) and pass in a header. It is simple and works with any client, but you renew it by hand every hour. Both send the same kind of token; only who fetches it differs.
+    >
+    > Kiro's login page can work with Runtime too, but it needs more Cognito setup, not covered here: Runtime publishes its own sign-in details for **its own address**, so Kiro asks Cognito for a token for the Runtime address, while your Day 1 scope belongs to your CloudFront address (`McpUrl`). You would add a second resource server whose identifier is the Runtime MCP URL, tick its `read` scope on `kiro-user`, let the server accept both scopes (`OIDC_REQUIRED_SCOPES`), and set Kiro's `oauthScopes` to `<Runtime MCP URL>/read`. The same applies to the Gateway in M03. Not yet tested in this workshop.
+
 ## Checkpoint
 - `agentcore status` shows `RstMcp` **Deployed**, runtime **READY**.
 - `who_am_i` through Runtime returns your test user's role and branch, and a manager asking for another branch gets their own branch with a note.
