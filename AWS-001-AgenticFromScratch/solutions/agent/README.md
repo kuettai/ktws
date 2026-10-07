@@ -17,7 +17,7 @@ uv sync
 uv run pytest                                     # no AWS needed
 
 # Chat. Needs Bedrock model access in AWS_REGION, plus the data sources the MCP server uses
-export AWS_REGION=us-east-1
+export AWS_PROFILE=workshop AWS_REGION=us-east-1
 uv run python -m rst_agent                        # local server, HQ user
 uv run python -m rst_agent --role manager --branch 12
 
@@ -33,7 +33,7 @@ uv sync
 uv run pytest                                     # no AWS needed
 
 # Chat. Needs Bedrock model access in AWS_REGION, plus the data sources the MCP server uses
-$env:AWS_REGION = "us-east-1"
+$env:AWS_PROFILE = "workshop"; $env:AWS_REGION = "us-east-1"
 uv run python -m rst_agent                        # local server, HQ user
 uv run python -m rst_agent --role manager --branch 12
 

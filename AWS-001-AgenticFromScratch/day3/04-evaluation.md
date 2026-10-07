@@ -47,7 +47,7 @@ Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full 
     (cd mock-api && MOCK_NOW=2026-10-01T14:30:00 MOCK_API_KEY=local-dev-key \
         uv run uvicorn app.main:app --port 8080 &)
     cd evals
-    export AWS_REGION=<region> REDSHIFT_WORKGROUP=rst-workshop REDSHIFT_DATABASE=dev
+    export AWS_PROFILE=workshop AWS_REGION=<region> REDSHIFT_WORKGROUP=rst-workshop REDSHIFT_DATABASE=dev
     export OPS_API_BASE_URL=http://localhost:8080 OPS_API_KEY=local-dev-key
     export SEED_END_DATE=<seedEndDate from RstDataStack>
     uv run python compute_ground_truth.py           # writes ground_truth.json
@@ -60,7 +60,7 @@ Everything is in [evals/](../evals/) ([README](../evals/README.md) has the full 
     Start-Process -NoNewWindow -WorkingDirectory mock-api -FilePath uv `
         -ArgumentList "run", "uvicorn", "app.main:app", "--port", "8080"   # runs in the background
     cd evals
-    $env:AWS_REGION = "<region>"; $env:REDSHIFT_WORKGROUP = "rst-workshop"; $env:REDSHIFT_DATABASE = "dev"
+    $env:AWS_PROFILE = "workshop"; $env:AWS_REGION = "<region>"; $env:REDSHIFT_WORKGROUP = "rst-workshop"; $env:REDSHIFT_DATABASE = "dev"
     $env:OPS_API_BASE_URL = "http://localhost:8080"; $env:OPS_API_KEY = "local-dev-key"
     $env:SEED_END_DATE = "<seedEndDate from RstDataStack>"
     uv run python compute_ground_truth.py           # writes ground_truth.json

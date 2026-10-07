@@ -21,7 +21,7 @@ uv sync
 uv run pytest                                       # the scorer's own tests, no AWS needed
 
 # 1. Expected answers for this account (once). Redshift + the mock Operations API
-export AWS_REGION=us-east-1 REDSHIFT_WORKGROUP=rst-workshop REDSHIFT_DATABASE=dev
+export AWS_PROFILE=workshop AWS_REGION=us-east-1 REDSHIFT_WORKGROUP=rst-workshop REDSHIFT_DATABASE=dev
 export OPS_API_BASE_URL=http://localhost:8080 OPS_API_KEY=local-dev-key
 uv run python compute_ground_truth.py
 
@@ -39,7 +39,7 @@ uv sync
 uv run pytest                                       # the scorer's own tests, no AWS needed
 
 # 1. Expected answers for this account (once). Redshift + the mock Operations API
-$env:AWS_REGION = "us-east-1"; $env:REDSHIFT_WORKGROUP = "rst-workshop"; $env:REDSHIFT_DATABASE = "dev"
+$env:AWS_PROFILE = "workshop"; $env:AWS_REGION = "us-east-1"; $env:REDSHIFT_WORKGROUP = "rst-workshop"; $env:REDSHIFT_DATABASE = "dev"
 $env:OPS_API_BASE_URL = "http://localhost:8080"; $env:OPS_API_KEY = "local-dev-key"
 uv run python compute_ground_truth.py
 

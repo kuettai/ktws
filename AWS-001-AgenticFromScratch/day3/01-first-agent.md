@@ -37,12 +37,12 @@
 3. **First run (10m).**
 
     ```bash
-    export AWS_REGION=<workshop region>
+    export AWS_PROFILE=workshop AWS_REGION=<workshop region>
     uv run python -m rst_agent --role manager --branch 12
     ```
 
     ```powershell
-    $env:AWS_REGION = "<workshop region>"
+    $env:AWS_PROFILE = "workshop"; $env:AWS_REGION = "<workshop region>"
     uv run python -m rst_agent --role manager --branch 12
     ```
     Ask: *What are my best sellers this month?* It answers, but you can't see how. That's the gap.

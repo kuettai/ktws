@@ -60,10 +60,11 @@ Open full size: [PNG](img/diagrams/05-deploy-ecs-1.png) · [SVG](img/diagrams/05
 | Cognito (M06) | Issues and signs user and service tokens | The server checks every token, then uses role and branch claims to limit data | Anyone with the URL can call the tools (the state right after this module) |
 
 ## Steps
-1. **Start the deploy first** (it takes about 15 minutes, most of it CloudFront). Needs Docker or Finch to build images; with Finch set `CDK_DOCKER=finch`. Set the region explicitly: a stale `AWS_REGION` in your shell overrides the profile's region and sends the deploy to the wrong place.
+1. **Start the deploy first** (it takes about 15 minutes, most of it CloudFront). Needs Docker or Finch to build images; with Finch set `CDK_DOCKER=finch`. Set the profile and region explicitly in this terminal: without them the deploy uses your default credentials, and a stale `AWS_REGION` overrides the profile's region, both sending the deploy to the wrong place. Use your own profile name if it isn't `workshop`, and check the account with `aws sts get-caller-identity` before deploying.
 
     ```bash
-    export AWS_REGION=<workshop region> CDK_DEFAULT_REGION=<workshop region>
+    export AWS_PROFILE=workshop AWS_REGION=<workshop region> CDK_DEFAULT_REGION=<workshop region>
+    aws sts get-caller-identity                                          # the account you are about to deploy into
     export CDK_DOCKER=finch                                              # only if you use Finch
     cd infra && npm install
     npx cdk deploy RstMcpStack                                           # your server from ../mcp-server
@@ -71,7 +72,8 @@ Open full size: [PNG](img/diagrams/05-deploy-ecs-1.png) · [SVG](img/diagrams/05
     ```
 
     ```powershell
-    $env:AWS_REGION = "<workshop region>"; $env:CDK_DEFAULT_REGION = "<workshop region>"
+    $env:AWS_PROFILE = "workshop"; $env:AWS_REGION = "<workshop region>"; $env:CDK_DEFAULT_REGION = "<workshop region>"
+    aws sts get-caller-identity                                          # the account you are about to deploy into
     $env:CDK_DOCKER = "finch"                                            # only if you use Finch
     cd infra; npm install
     npx cdk deploy RstMcpStack                                           # your server from ../mcp-server

@@ -14,7 +14,7 @@ uv sync
 uv run pytest tests/test_lab1_recorder.py       # Lab 1 checkpoint
 uv run pytest tests/test_lab3_approval.py       # Lab 3 checkpoint
 
-export AWS_REGION=us-east-1                # Bedrock model access needed from here
+export AWS_PROFILE=workshop AWS_REGION=us-east-1                # Bedrock model access needed from here
 uv run python -m rst_agent                      # chat as an HQ user
 uv run python -m rst_agent --role manager --branch 12
 ```
@@ -24,7 +24,7 @@ uv sync
 uv run pytest tests/test_lab1_recorder.py       # Lab 1 checkpoint
 uv run pytest tests/test_lab3_approval.py       # Lab 3 checkpoint
 
-$env:AWS_REGION = "us-east-1"                   # Bedrock model access needed from here
+$env:AWS_PROFILE = "workshop"; $env:AWS_REGION = "us-east-1"                   # Bedrock model access needed from here
 uv run python -m rst_agent                      # chat as an HQ user
 uv run python -m rst_agent --role manager --branch 12
 ```
