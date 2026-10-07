@@ -113,7 +113,7 @@ In the AWS console, open **Amazon Cognito → User pools → `rst-workshop`** (t
 > - **The test users are shared**: everyone signs in as `manager_branch_12`, `analyst_hq` and so on.
 > - **Step 7:** use the shared-account deploy command shown there.
 
-1. **Domain.** **Branding → Domain → Create Cognito domain.** Choose a prefix, for example `rst-mcp-<yourname>` (it must be unique in the region), and **Managed login** as the version. The full domain, `https://<prefix>.auth.<region>.amazoncognito.com`, is your **Cognito domain**: note it for Parts C and D.
+1. **Domain.** In the left menu choose **Branding → Domain**. Next to **Domain**, choose **Actions → Create Cognito domain**. Enter a **domain prefix**, for example `rst-mcp-<yourname>` (it must be unique in the region), set **Branding version** to **Managed login**, and choose **Create**. The full domain, `https://<prefix>.auth.<region>.amazoncognito.com`, is your **Cognito domain**: note it for Parts C and D. The same from a terminal: `aws cognito-idp create-user-pool-domain --user-pool-id <user pool id> --domain <prefix> --managed-login-version 2`.
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: domain settings with managed login selected · save as `img/m06-cognito-domain.png`
 
