@@ -251,6 +251,8 @@ Field-by-field reference: [docs/auth-options.md](../docs/auth-options.md#amazon-
 
 Save. Kiro opens the browser; sign in as `manager_branch_12`. "Connection failed" with no browser window usually means a wrong `url` (check for `https://https://`).
 
+> **Kiro opens two sign-in tabs.** After a failed attempt, Kiro shows **Retry**, then **Reauthenticate**, and each opens a browser tab. Only the **newest** tab works: signing in on an older one ends on `localhost:7778/oauth/callback?code=…` with "This site can't be reached", or a timeout. Close all sign-in tabs, choose **Reauthenticate** once, and sign in on the tab it opens. Still stuck: Command Palette → **Developer: Reload Window**, then try again. Only one Kiro window (or Kiro CLI) can sign in at a time, as they share port 7778.
+
 **Option 2 (fallback): bearer token.**
 
 1. Token:
