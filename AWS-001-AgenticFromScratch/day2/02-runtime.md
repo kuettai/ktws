@@ -36,7 +36,19 @@ Open full size: [PNG](img/diagrams/02-runtime-1.png) · [SVG](img/diagrams/02-ru
 
 ## Before you start
 - Day 1 is finished and `RstMcpStack` is deployed with auth on (M06 step 7). Your terminal has `AWS_PROFILE` and `AWS_REGION` set, as in Day 1 M05.
-- **Redeploy `RstMcpStack` once** with today's code, so the Ops API is also reachable from outside the VPC at `https://<cdn>/ops` (AgentCore runs outside your VPC). From `infra/`, run **your M06 step 7 command again** (same `-c` options). The new stack output `OpsApiUrl` shows the address. It still needs the API key on every call.
+- **Check that the Ops API is reachable from outside your VPC.** AgentCore runs outside your Day 1 VPC, and on Day 1 the Ops API (`mock-api`) was internal only. Current versions of `RstMcpStack` also publish it at `https://<cdn>/ops` (it still needs the API key on every call) and show it as the stack output `OpsApiUrl`. Check:
+
+    ```bash
+    aws cloudformation describe-stacks --stack-name RstMcpStack --query "Stacks[0].Outputs[?OutputKey=='OpsApiUrl'].OutputValue" --output text
+    ```
+
+    ```powershell
+    aws cloudformation describe-stacks --stack-name RstMcpStack --query "Stacks[0].Outputs[?OutputKey=='OpsApiUrl'].OutputValue" --output text
+    ```
+
+    - Prints `https://....cloudfront.net/ops`: nothing to do.
+    - Prints nothing (`None`): your stack was deployed before this was added. Get the latest workshop code (`git pull`), then from `infra/` run **your M06 step 7 command again**, with the same `-c` options (leaving them out turns sign-in off). Without it, the server's live tools fail on Runtime, step 5's script stops, and M03 can't reach the Ops API.
+
 - Have these from Day 1 at hand: your **user pool ID**, the **three app client IDs** (`kiro-user`, `quick-user`, `quick-s2s`), your **Cognito domain** and your **`McpUrl`**. M06 Part B step 6 shows the commands to list them.
 
 > **Shared account?** Use your participant name everywhere today: project `rstday2<name>` (letters and digits only), and pass `--participant <name>` to the script in step 5.
