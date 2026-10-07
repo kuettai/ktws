@@ -278,10 +278,38 @@ Either way: call `who_am_i` from Kiro chat.
 > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Kiro chat showing `who_am_i` with role manager and branch 12 · save as `img/m06-kiro-who-am-i.png`
 
 ## Part E — Identity changes data (20m)
-1. Ask Kiro to implement branch scoping per `sql-rules.md` "Branch scoping" section (`lib/scoping.py` + call it from every branch tool). Review. Reference: `solutions/mcp-server/lib/scoping.py`. **Used the M02 or M03 shortcut?** You already have `lib/scoping.py` and the tools that call it: read it and its `scoped_branch` calls instead of building it, then make sure your own Redshift tools from M02 call it too.
-2. In Quick as `manager_branch_12`: "Show revenue for branch 5 last week." → tool returns branch 12 only and says so.
-3. As `analyst_hq`: same question → branch 5 returned.
-4. Discuss: with `quick-s2s` (no user), what should scoping do? Reference server treats service tokens as `SERVICE_ROLE` (default `hq`) — a design decision worth debating.
+
+The server now knows **who** is calling (`who_am_i` shows the role and branch from the token), but your tools don't use it yet: a branch manager can still read any branch. In this part you make the tools respect the caller's identity, then prove it with two users.
+
+1. **See the gap (2m).** In Kiro, connected to `rst-remote-ecs` as `manager_branch_12`, ask: *"Show revenue for branch 5 last week."* You get branch 5's numbers. A manager of branch 12 should not see them.
+
+2. **Ask Kiro to add branch scoping (10m).** In the Kiro chat panel:
+
+    *"Implement branch scoping as described in the 'Branch scoping' section of `.kiro/steering/sql-rules.md`. Create `mcp-server/lib/scoping.py` with `scoped_branch(requested_branch_id)`, which returns the branch to query and a note (or None), and `require_hq(action)`. Use `current_caller()` from `lib/auth.py`. Call `scoped_branch` in every tool in `tools/` that takes a `branch_id`, and add the note to the tool result. Make cross-branch rankings (`get_top_branches`) HQ only with `require_hq`. Add unit tests."*
+
+    Review the change like code:
+
+    - [ ] **Every** tool with a `branch_id` calls `scoped_branch` before it queries, including the Operations API tools from M03.
+    - [ ] A manager or staff user always gets **their own** branch, whatever branch the model asked for, and the result says so in a `note`.
+    - [ ] `hq` users are unchanged. A user with no branch gets a clear error, not all branches.
+    - [ ] `uv run pytest` passes (from `mcp-server/`).
+
+    Reference: `solutions/mcp-server/lib/scoping.py` and its calls in `solutions/mcp-server/tools/`. **Used the M02 or M03 shortcut?** You already have `lib/scoping.py` and the calls: read them instead, and check your own tools call it too.
+
+3. **Try it locally first (3m, optional).** With auth off, the server uses `LOCAL_ROLE` and `LOCAL_BRANCH_ID` as the caller. In `.kiro/settings/mcp.json`, in the `env` of `rst-local`, set `"LOCAL_ROLE": "manager"` and add `"LOCAL_BRANCH_ID": "12"`, reconnect `rst-local`, and ask the branch 5 question again: you get branch 12 and the note. Set `LOCAL_ROLE` back to `"hq"` afterwards.
+
+4. **Redeploy (5m).** Your code changed, so ECS needs a new image. Run **the same command as step 7** of Part B, with the same `-c` options (leaving them out turns auth off again).
+
+5. **Prove it with two users.** Ask *"Show revenue for branch 5 last week."* in Kiro or Quick:
+
+    | Signed in as | Expected |
+    |---|---|
+    | `manager_branch_12` | Branch 12's numbers, and a note that you can only view branch 12 |
+    | `analyst_hq` | Branch 5's numbers |
+
+    To change user, see [Switching test users](#switching-test-users) below, and confirm with `who_am_i`.
+
+6. **Discuss.** With `quick-s2s` (a service, no user), what should scoping do? The reference server treats service tokens as `SERVICE_ROLE` (default `hq`): a design decision worth debating.
 
 ## Switching test users
 Cognito remembers the last sign-in in the browser, so the next sign-in can silently reuse it (you think you're the manager, but `who_am_i` says `hq`).
