@@ -79,7 +79,7 @@ sequenceDiagram
 
 Open full size: [PNG](img/diagrams/06-auth-3.png) · [SVG](img/diagrams/06-auth-3.svg)
 
-**Resource binding (RFC 8707).** MCP clients such as Kiro and Quick send `resource=<McpUrl>` when they ask for a token. Cognito then only accepts custom scopes that belong to a resource server **whose identifier is exactly that URL**. So the resource server identifier is your `McpUrl` (from M05), and the read scope is `<McpUrl>/read`, for example `https://d123abc.cloudfront.net/mcp/read`.
+**Resource binding (RFC 8707).** MCP clients such as Kiro and Quick send `resource=<McpUrl>` when they ask for a token. Cognito then only accepts custom scopes that belong to a resource server **whose identifier is exactly that URL**. So the resource server identifier is your `McpUrl` (from M05), and the read scope is `<McpUrl>/read`, for example `https://d123abc.cloudfront.net/mcp/read`. That scope is a **name**, not a web page: Cognito names every scope `<resource server identifier>/<scope>`, so it only looks like a URL. Opening it in a browser shows *Not Found*, which is expected; you only type it into settings (app clients, the deploy command, Kiro).
 
 ## Part B — Build user auth in Cognito (25m, console, step by step)
 
