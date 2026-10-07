@@ -87,7 +87,7 @@ Option 1 — Kiro OAuth with a pre-registered client (recommended). Setting `oau
 
 ```json
 "rst-remote-ecs": {
-  "url": "https://<distribution-id>.cloudfront.net/mcp",
+  "url": "<McpUrl>",
   "oauth": {
     "clientId": "<kiro-user client id>",
     "redirectUri": "http://localhost:7778/oauth/callback",
@@ -107,7 +107,7 @@ Option 2 — static bearer token (fallback, works with any IdP):
 
 ```json
 "rst-remote-ecs-token": {
-  "url": "https://<distribution-id>.cloudfront.net/mcp",
+  "url": "<McpUrl>",
   "headers": { "Authorization": "Bearer ${RST_MCP_TOKEN}" }
 }
 ```
