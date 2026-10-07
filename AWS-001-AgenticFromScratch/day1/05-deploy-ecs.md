@@ -137,7 +137,12 @@ Open full size: [PNG](img/diagrams/05-deploy-ecs-1.png) · [SVG](img/diagrams/05
 - **Secrets Manager** holds the Ops API key and Promo token; ECS injects them as env vars.
 
 ## Checkpoint
-Remote endpoint answers in Inspector. It is **public and unauthenticated** right now (stack output says so) — move to M06 immediately. If the session breaks here, run `npx cdk destroy RstMcpStack` (shared account: `npx cdk destroy RstMcpStack-<name> -c participant=<name>`, never `--all`).
+Remote endpoint answers in Inspector. **Keep this stack**: M06 adds sign-in to it, and M07 and M08 use it.
+
+It is **public and unauthenticated** right now (the `McpPublicUrlNote` output says so), so go on to M06 straight away. Only if you have to **stop before M06** (end of the day, a long break), delete it so nobody can query your data meanwhile, then redeploy when you come back:
+
+- Delete: `npx cdk destroy RstMcpStack` (shared account: `npx cdk destroy RstMcpStack-<name> -c participant=<name>`; never `--all`, which would delete the shared data too).
+- Coming back: redeploy (step 1, about 16 minutes). You get a **new** `McpUrl`, so use the new one in M06.
 
 ## Instructor notes
 - Timing: 30m = start the deploy 5 + diagram 5 + console tour 10 + test 10. The deploy itself (about 16 minutes) runs underneath the diagram and the tour.
