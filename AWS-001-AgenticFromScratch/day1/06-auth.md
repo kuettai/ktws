@@ -314,6 +314,24 @@ The server now knows **who** is calling (`who_am_i` shows the role and branch fr
 
 6. **Discuss.** With `quick-s2s` (a service, no user), what should scoping do? The reference server treats service tokens as `SERVICE_ROLE` (default `hq`): a design decision worth debating.
 
+    <details>
+    <summary>Discussion notes (open after discussing)</summary>
+
+    - **What the token says.** A `quick-s2s` token proves *which app* is calling, not *which person*. It has no `role` and no `branch_id`, so the server must decide.
+    - **The trap.** In Quick, a connector with service authentication uses that one identity for **everyone** who uses it. With `SERVICE_ROLE=hq`, a branch manager chatting through it sees every branch: the scoping you just built is bypassed.
+    - **Options:**
+
+        | Treat service tokens as | Good for | Risk |
+        |---|---|---|
+        | `hq` (reference default) | Scheduled HQ reports, quick demos | Anyone who can use the connector, or holds the client secret, reads all branches |
+        | `staff` with no branch (least privilege) | A safe default | Branch tools return "not linked to a branch": the service gets almost nothing |
+        | A role per client, set in the token (pre-token trigger, or a lookup by `client_id`) | One client per job, e.g. a branch 12 dashboard | More clients and secrets to manage |
+        | A separate scope, e.g. `<McpUrl>/read.all`, required for cross-branch data | Making "all branches" an explicit grant | More scopes to manage |
+
+    - **Expected conclusion.** Use **user sign-in** (`quick-user`, `kiro-user`) for anything a person chats with, so their identity scopes the data. Keep service tokens for system jobs, each with its own client, the narrowest role and scope, and logs. In production, don't default service tokens to `hq`: set `SERVICE_ROLE` (an environment variable of the MCP server) to `staff`, or reject them for branch data.
+
+    </details>
+
 ## Switching test users
 Cognito remembers the last sign-in in the browser, so the next sign-in can silently reuse it (you think you're the manager, but `who_am_i` says `hq`).
 
