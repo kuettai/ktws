@@ -49,7 +49,7 @@ Tool names on the Gateway are `<target>___<tool>` (three underscores): `OpsApi__
 - Go back to the **workshop folder** (the one with `infra/`, `scripts/` and `rstday2/`): M02 ended inside `rstday2/`, so run `cd ..`. All commands below start there, with `AWS_PROFILE` and `AWS_REGION` set.
 - In commands, `$GATEWAY_ID` (PowerShell: `$env:GATEWAY_ID`) is a variable you set once in step 4. A new terminal forgets variables: see "New terminal?" at the end of step 4.
 
-> **Shared account?** Add `--participant <name>` to the script in step 2, and use the names it prints (`rst-gateway-<name>` and so on).
+> **Shared account?** Your project folder is `rstday2<name>` (M02): read every `rstday2/...` path below as `rstday2<name>/...`. Add `--participant <name>` to the script in step 2 (shown under each command), and use the names it prints (`rst-gateway-<name>` and so on).
 
 ## Steps
 
@@ -73,10 +73,12 @@ Tool names on the Gateway are `<target>___<tool>` (three underscores): `OpsApi__
 
     ```bash
     python3 scripts/make_gateway_inputs.py rstday2
+    # shared account: python3 scripts/make_gateway_inputs.py rstday2<name> --participant <name>
     ```
 
     ```powershell
     py scripts\make_gateway_inputs.py rstday2
+    # shared account: py scripts\make_gateway_inputs.py rstday2<name> --participant <name>
     ```
 
     It writes five files to `rstday2/gateway/`. Open `gateway.json` and `target-ops-api.json` and find:

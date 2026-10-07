@@ -138,11 +138,13 @@ Open full size: [PNG](img/diagrams/02-runtime-1.png) · [SVG](img/diagrams/02-ru
     ```bash
     cd ..
     python3 scripts/configure_runtime.py rstday2
+    # shared account: python3 scripts/configure_runtime.py rstday2<name> --participant <name>
     ```
 
     ```powershell
     cd ..
     py scripts\configure_runtime.py rstday2
+    # shared account: py scripts\configure_runtime.py rstday2<name> --participant <name>
     ```
 
     It prints every value. Open `rstday2/agentcore/agentcore.json` and find them under `runtimes` → `envVars`, plus `executionRoleArn` (the Day 1 task role, so the server reads Redshift as `mcp_reader` exactly as on ECS). The promotions tools are not connected on Runtime: that service stays inside the Day 1 VPC.

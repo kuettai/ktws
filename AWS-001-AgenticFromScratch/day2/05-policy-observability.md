@@ -51,7 +51,7 @@ Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch
     ```
 - In this module, `mcp_call` means `uv run --directory solutions/mcp-server python ../../scripts/mcp_call.py "$GATEWAY_URL"` (PowerShell: `uv run --directory solutions/mcp-server python ..\..\scripts\mcp_call.py "$env:GATEWAY_URL"`). Type the full command each time.
 
-> **Shared account?** Name the engine `rst_policy_engine_<name>` (underscores, no hyphens), and add `--participant <name>` to the script in step 2.
+> **Shared account?** Name the engine `rst_policy_engine_<name>` (underscores, no hyphens), read every `rstday2/...` path as `rstday2<name>/...`, and add `--participant <name>` to the script in step 2 (shown under the command).
 
 ## Part A — Policy (35m)
 
@@ -87,10 +87,12 @@ Your MCP server's tools (`RstMcp___...`) already limit data to the user's branch
 
     ```bash
     python3 scripts/make_gateway_inputs.py rstday2 --policies
+    # shared account: python3 scripts/make_gateway_inputs.py rstday2<name> --participant <name> --policies
     ```
 
     ```powershell
     py scripts\make_gateway_inputs.py rstday2 --policies
+    # shared account: py scripts\make_gateway_inputs.py rstday2<name> --participant <name> --policies
     ```
 
     It writes `policy-*.json` (one per rule), `gateway-policy-log-only.json` and `gateway-policy-enforce.json` to `rstday2/gateway/`. It also writes the two secret files of M03 again: delete them (`rm rstday2/gateway/api-key-provider.json rstday2/gateway/oauth-provider.json`; PowerShell: `Remove-Item rstday2\gateway\api-key-provider.json, rstday2\gateway\oauth-provider.json`).
