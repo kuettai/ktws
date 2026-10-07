@@ -97,6 +97,7 @@ nav:
           - M07 Wrap-up: AWS-001-AgenticFromScratch/day3/07-wrap-up.md
       - Reference:
           - CDK infrastructure: AWS-001-AgenticFromScratch/docs/infra.md
+          - Sign-in and tokens, explained: AWS-001-AgenticFromScratch/docs/sign-in-and-tokens.md
           - Authentication options: AWS-001-AgenticFromScratch/docs/auth-options.md
           - Data dictionary: AWS-001-AgenticFromScratch/docs/data-dictionary.md
           - Sample queries: AWS-001-AgenticFromScratch/docs/sample-queries.md

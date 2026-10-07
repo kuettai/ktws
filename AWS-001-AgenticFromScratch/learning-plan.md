@@ -108,18 +108,16 @@ Target: 08:30–17:15 (7h15 content, 1h30 breaks).
 
 ## Day 2 — Same workload on AgentCore
 
-> **Preview** — Day 2 has not yet been tested end to end.
-
 Target: 09:00–17:00 (6h30 content, 1h30 breaks).
 
 | # | Module | Time | Outcome |
 |---|---|---|---|
 | 01 | [AgentCore overview](day2/01-agentcore-overview.md) | 30m | Map Day 1 components to AgentCore services |
-| 02 | [Runtime](day2/02-runtime.md) | 75m | Host Day 1 MCP server on AgentCore Runtime with JWT inbound auth |
-| 03 | [Gateway](day2/03-gateway.md) | 90m | Zero-code MCP from OpenAPI; Lambda target for Redshift; semantic tool search |
-| 04 | [Identity](day2/04-identity.md) | 45m | Outbound credentials (API key, OAuth) via token vault |
-| 05 | [Policy + Observability](day2/05-policy-observability.md) | 60m | Cedar policy restricting write tools; CloudWatch traces |
-| 06 | [Capstone](day2/06-capstone.md) | 60m | Quick + Kiro on Gateway, one restaurant scenario end to end |
+| 02 | [Runtime](day2/02-runtime.md) | 60m | Day 1 MCP server on AgentCore Runtime, same code, Cognito sign-in checked by Runtime |
+| 03 | [Gateway](day2/03-gateway.md) | 75m | One MCP address: Ops API from OpenAPI (no code) + the Runtime server; user identity kept; tool search |
+| 04 | [Identity](day2/04-identity.md) | 30m | Where outbound credentials live (vault), who may read them, ways to pass the user's identity |
+| 05 | [Policy + Observability](day2/05-policy-observability.md) | 60m | Cedar rules on the Gateway (own branch, managers-only refunds), log-only then enforce; logs and traces |
+| 06 | [Capstone](day2/06-capstone.md) | 75m | Kiro on the Gateway, one restaurant scenario end to end, new tool shipped through Runtime |
 | 07 | [Decision matrix](day2/07-decision-matrix.md) | 30m | Choose ECS vs Runtime vs Gateway for common use cases |
 
 **Day 2 schedule**
@@ -127,27 +125,26 @@ Target: 09:00–17:00 (6h30 content, 1h30 breaks).
 | Time | Item |
 |---|---|
 | 09:00–09:30 | M01 AgentCore overview |
-| 09:30–10:45 | M02 Runtime |
-| 10:45–11:00 | Break |
-| 11:00–12:30 | M03 Gateway |
-| 12:30–13:30 | Lunch |
-| 13:30–14:15 | M04 Identity |
-| 14:15–15:15 | M05 Policy + Observability |
-| 15:15–15:30 | Break |
-| 15:30–16:30 | M06 Capstone |
-| 16:30–17:00 | M07 Decision matrix |
+| 09:30–10:30 | M02 Runtime |
+| 10:30–10:45 | Break |
+| 10:45–12:00 | M03 Gateway |
+| 12:00–13:00 | Lunch |
+| 13:00–13:30 | M04 Identity |
+| 13:30–14:30 | M05 Policy + Observability |
+| 14:30–14:45 | Break |
+| 14:45–16:00 | M06 Capstone |
+| 16:00–16:30 | M07 Decision matrix |
+| 16:30–17:00 | Buffer / Q&A |
 
 **Day 2 checkpoints**
 
-- After M02: Kiro calls Runtime-hosted MCP with a Cognito bearer token.
-- After M03: Gateway exposes mock API tools without code written by participant.
-- After M05: `issue_refund` denied for non-manager, allowed for manager; trace visible.
+- After M02: `who_am_i` through Runtime returns the signed-in test user; Kiro uses `rst-agentcore-runtime`.
+- After M03: one Gateway URL lists the Ops API and Runtime tools; `RstMcp___get_current_stock` for another branch returns your own branch.
+- After M05: a manager reading another branch's live stock, and a staff refund, are denied by Gateway rules; the policy decision is visible in the traces.
 
 ---
 
 ## Day 3 — Agents: plan, act, ask, measure
-
-> **Preview** — Day 3 has not yet been tested end to end. The agent and test harness have unit tests, and the agent was checked live against the Day 1 server.
 
 Target: 09:00–17:00 (6h30 content, 1h30 breaks).
 
@@ -202,11 +199,13 @@ The agent uses the same tools as Days 1–2 — no new data sources. Code lives 
 
 **Tested end to end (Day 1):** data and auth stacks, Redshift tools through MCP, ECS deploy behind CloudFront, 401 for missing or invalid tokens, branch scoping and write-tool rules for manager / staff / HQ, the M07 combined question, Kiro IDE OAuth sign-in, and Amazon Quick (web) user authentication — all against a real Cognito pool. Findings from that run are built into M05, M06 and [docs/auth-options.md](docs/auth-options.md).
 
+**Tested end to end (Days 2 and 3, us-east-1):** the MCP server on AgentCore Runtime with Cognito sign-in and branch scoping; the Gateway with the OpenAPI and Runtime targets, the request interceptor and tool search; the four Cedar rules in log-only and enforce mode; Gateway logs and traces; the local agent (recorder, approval, decline and approve); the eval set (18/18 locally); the agent on Runtime with tools through the Gateway, approval pause and policy denial; traces in GenAI Observability.
+
 **Not yet verified:**
 
 - Quick **service auth** against Cognito: Quick always sends `resource` (RFC 8707), and Cognito doesn't support resource binding on client credentials. It may be rejected.
 - Amazon Quick availability and cost in your accounts (needs Enterprise).
-- AgentCore Runtime / Gateway / Policy availability in your region.
-- Day 2 end to end.
-- Day 3 end to end: `agentcore` CLI flags in M05 come from help text, not a live run. Bedrock model access (including any one-time model use-case form) must be enabled. Quick does not show the agent's approval prompts — the approval demo runs in the agent CLI.
+- AgentCore Runtime / Gateway / Policy availability outside us-east-1.
+- Quick connected to the Day 2 Gateway or Runtime (Kiro with a bearer token was tested). Quick does not show the agent's approval prompts; the approval demo runs in the agent CLI.
+- Windows PowerShell versions of the Day 2 and Day 3 commands (tested on macOS).
 - Module timings beyond Day 1's measured deploy times: dry-run each day with an analyst-profile tester (M02 and Day 3 M04 especially).

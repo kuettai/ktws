@@ -38,8 +38,9 @@ No Git yet? Install it first (see the list below), or download the code as a ZIP
 - [ ] Kiro installed and signed in
 - [ ] Python 3.12+ and [`uv`](https://docs.astral.sh/uv/)
 - [ ] Docker Desktop or Finch (needed from Module 04; Modules 01-03 run without it). Can't install either on your laptop? Run the Module 05 deploy from AWS CloudShell, which has Docker built in.
-- [ ] AWS CLI v2
+- [ ] AWS CLI v2, version 2.34 or later (`aws --version`; Day 2 uses the `bedrock-agentcore-control` commands)
 - [ ] Node.js 22.19+ (MCP Inspector needs it; current LTS versions are fine)
+- [ ] Days 2–3: the AgentCore CLI, `npm install -g @aws/agentcore@0.31` (Day 2 M02 step 1 shows it)
 - [ ] Git
 - [ ] Browser access to the AWS Console and Amazon Quick (and Workshop Studio, if your event uses it)
 
@@ -242,6 +243,7 @@ Quick appears in Day 1 Module 06 Part C and the Module 07 demo, and in the Quick
 - [ ] Full Day 1 run by someone with analyst profile
 - [ ] Quick user auth works end-to-end with Cognito
 - [ ] Kiro remote MCP works with OAuth sign-in and with a bearer header
-- [ ] Day 2 Runtime + Gateway reachable from Quick
+- [ ] Day 2 Runtime + Gateway reachable from Kiro with a bearer token (Quick optional, not yet tested)
+- [ ] Bedrock model access for `global.anthropic.claude-sonnet-5-5` in the workshop accounts (Day 3)
 - [ ] Full Day 3 run by someone with analyst profile; agent approval flow and scoring script work end to end
 - [ ] Shared account: two participants deploy `RstMcpStack-<name>` side by side and both pass the Module 06 checkpoint

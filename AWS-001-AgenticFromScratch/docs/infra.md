@@ -8,19 +8,21 @@ You don't need to write CDK in the workshop. You need to know which stack to dep
 
 | Path | What it is |
 |---|---|
-| [`bin/app.ts`](../infra/bin/app.ts) | The CDK app: reads the `-c` options, checks them, and creates the three stacks |
+| [`bin/app.ts`](../infra/bin/app.ts) | The CDK app: reads the `-c` options, checks them, and creates the four stacks |
 | [`lib/data-stack.ts`](../infra/lib/data-stack.ts) | `RstDataStack`: network, Redshift with the mock data, the MCP server's IAM role |
 | [`lib/auth-stack.ts`](../infra/lib/auth-stack.ts) | `RstAuthStack`: the Cognito user pool (and, as catch-up, everything from M06 Part B) |
 | [`lib/mcp-stack.ts`](../infra/lib/mcp-stack.ts) | `RstMcpStack`: the MCP server and the two internal apps on ECS, behind CloudFront |
+| [`lib/agentcore-stack.ts`](../infra/lib/agentcore-stack.ts) | `RstAgentCoreStack` (Day 2): the AgentCore Gateway's IAM role and request interceptor |
 | [`lambda/seed/handler.py`](../infra/lambda/seed/handler.py) | Custom resource that loads the mock data into Redshift and grants access |
 | [`lambda/pre_token/index.py`](../infra/lambda/pre_token/index.py) | Cognito trigger that copies `role` and `branch_id` into the access token |
+| [`lambda/gateway_interceptor/index.py`](../infra/lambda/gateway_interceptor/index.py) | Gateway request interceptor (Day 2): passes the caller's token on to the MCP server target |
 | [`test/test_seed_handler.py`](../infra/test/test_seed_handler.py) | Unit tests for the seed handler |
 | [`cdk.json`](../infra/cdk.json) | How to run the app (`ts-node bin/app.ts`) and the default value of each option |
 | `package.json` | CDK versions (`aws-cdk-lib`, `aws-cdk` CLI). Run `npm install` once |
 
 The stacks use files outside `infra/` too: `data/` (seed generator and SQL, used by the seed Lambda), and `mcp-server/`, `mock-api/`, `legacy-app/` (each built into a container image by `RstMcpStack`).
 
-## The three stacks
+## The stacks
 
 ```mermaid
 flowchart LR
@@ -28,8 +30,9 @@ flowchart LR
         data["RstDataStack<br/>VPC, Redshift, seed data,<br/>MCP task role"]
         auth["RstAuthStack<br/>Cognito user pool,<br/>pre-token trigger"]
     end
-    subgraph participant["Participant (Day 1 M05, M06)"]
+    subgraph participant["Participant (Day 1 M05, M06; Day 2 M03)"]
         mcp["RstMcpStack<br/>ECS services, ALB,<br/>CloudFront"]
+        ac["RstAgentCoreStack<br/>Gateway role,<br/>interceptor Lambda"]
     end
     data -- "VPC, task role,<br/>workgroup name" --> mcp
     auth -. "issuer and client IDs,<br/>passed by hand with -c" .-> mcp
@@ -47,7 +50,7 @@ Open full size: [PNG](img/diagrams/infra-1.png) · [SVG](img/diagrams/infra-1.sv
 | Redshift Serverless namespace and workgroup `rst-workshop`, database `dev`, base capacity 8 RPU, 60 s query limit | The data the MCP tools read. Not publicly reachable |
 | Secrets Manager secret `RedshiftAdmin` | The admin password, used only by the seed step |
 | S3 bucket and a COPY role | The seed step writes CSV files here and Redshift loads them |
-| IAM role `rst-mcp-task-<region>` | The MCP server's identity. It may call the Redshift Data API on this workgroup only, and is mapped to the database role `mcp_reader`. ECS and AgentCore Runtime (Day 2) can use it |
+| IAM role `rst-mcp-task-<region>` | The MCP server's identity. It may call the Redshift Data API on this workgroup only, and is mapped to the database role `mcp_reader`. ECS and AgentCore Runtime (Day 2) can use it; it may also write Runtime logs, traces and metrics |
 | Custom resource `Seed` (Lambda `lambda/seed/handler.py`) | Creates the tables and `mcp` views, loads the mock data, creates `mcp_reader` and grants it to the task role and to `localDevRoleNames` |
 
 The seed reloads data only when the files in `data/` change or you pass a different `seedEndDate`. It re-applies access (grants) on every deploy.
@@ -79,13 +82,22 @@ Internet → CloudFront (HTTPS) → VPC origin → internal ALB → ECS Fargate:
 | ECS cluster with Cloud Map namespace `rst.local` (shared account: `<participant>.rst.local`) | The MCP server finds the internal apps as `mock-api.rst.local` and `legacy-app.rst.local` |
 | Three Fargate services, 0.25 vCPU / 512 MiB each, ARM64 by default | `mcp-server` (2 tasks, port 8000), `mock-api` (8080), `legacy-app` (8081). Images are built from the folders on your laptop (Docker or Finch) |
 | Secrets `OpsApiKey`, `PromoApiToken` | API keys of the two internal apps, given to the containers as environment variables |
-| Internal Application Load Balancer, health check `/health` | Never public. Only reachable from inside the VPC |
-| CloudFront distribution with a VPC origin | Gives HTTPS on `*.cloudfront.net` without a custom domain or certificate |
+| Internal Application Load Balancer, health check `/health` | Never public. Only reachable from inside the VPC. Paths `/ops/*` go to `mock-api` (Day 2), everything else to the MCP server |
+| CloudFront distribution with a VPC origin | Gives HTTPS on `*.cloudfront.net` without a custom domain or certificate. `https://<cdn>/mcp` is the MCP server; `https://<cdn>/ops` the Ops API (still needs its `X-API-Key`), for AgentCore, which runs outside the VPC |
 | Log groups, one per service, kept one week | CloudWatch Logs, used in M05 and M07 |
 
 Auth is off until you pass `oidcIssuer` (M06 step 7). Then the stack sets `OIDC_ISSUER`, `OIDC_ALLOWED_AUDIENCES`, `OIDC_REQUIRED_SCOPES` and `MCP_PUBLIC_URL` on the MCP server, which turns token checking on.
 
-Outputs: `McpUrl`, `McpPublicUrlNote` (says whether auth is on), `OpsApiKeySecretArn`, `PromoApiTokenSecretArn`.
+Outputs: `McpUrl`, `OpsApiUrl`, `McpPublicUrlNote` (says whether auth is on), `OpsApiKeySecretArn`, `PromoApiTokenSecretArn`.
+
+### `RstAgentCoreStack` (Day 2)
+
+| Resource | Why |
+|---|---|
+| IAM role `rst-gateway-role-<region>` | The role the AgentCore Gateway runs as: read its credentials from the AgentCore Identity vault (and only `bedrock-agentcore-identity!*` secrets), call the interceptor, ask the policy engine |
+| Lambda `rst-gateway-interceptor` | Request interceptor: hands the caller's `Authorization` header on to the targets, so the MCP server knows the user |
+
+The Gateway, its targets, credential providers and policies are not in CDK: participants create them with the AWS CLI in Day 2 M03–M05. Outputs: `GatewayRoleArn`, `InterceptorArn`. Shared account: `RstAgentCoreStack-<participant>`.
 
 ## Options (`-c key=value`)
 
@@ -104,7 +116,7 @@ Defaults are in `cdk.json`. Options are not remembered between deploys: **pass t
 | `oidcIssuer` | MCP | empty | `https://cognito-idp.<region>.amazonaws.com/<user pool id>`. Set: auth on |
 | `oidcAllowedAudiences` | MCP | empty | The app client IDs allowed to call the server, comma-separated, no spaces |
 | `oidcRequiredScopes` | MCP | `rst-mcp/read` | The scope every token must have: `<McpUrl>/read` |
-| `participant` | MCP | empty | Shared account: your short name (2–20 lowercase letters and digits). The stack becomes `RstMcpStack-<participant>` |
+| `participant` | MCP, AgentCore | empty | Shared account: your short name (2–20 lowercase letters and digits). The stacks become `RstMcpStack-<participant>` and `RstAgentCoreStack-<participant>` |
 
 `bin/app.ts` checks `seedEndDate` and `participant` before anything is deployed, so a typo fails at once with a clear message.
 
@@ -131,7 +143,7 @@ npx cdk destroy RstMcpStack          # delete your server stack
 - **Finch instead of Docker:** set `CDK_DOCKER=finch` before deploying.
 - **Shared account:** add `--exclusively -c participant=<name>` and use `RstMcpStack-<name>`. `--exclusively` stops CDK from also deploying `RstDataStack`, which belongs to the instructor.
 - **Wrong region:** CDK uses `CDK_DEFAULT_REGION`, from your profile or `AWS_REGION`. If a deploy goes to an unexpected region, check `echo $AWS_REGION`.
-- **Deleting everything** (instructor, after the event): `RstMcpStack` first (all participant stacks), then `RstAuthStack` and `RstDataStack`.
+- **Deleting everything** (instructor, after the event): first the AgentCore resources (Day 2 M05 and Day 3 M05 "Clean up"), then `RstAgentCoreStack` and `RstMcpStack` (all participant stacks), then `RstAuthStack` and `RstDataStack`.
 
 ## Troubleshooting
 
