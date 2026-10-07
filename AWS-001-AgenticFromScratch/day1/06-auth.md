@@ -83,6 +83,29 @@ Open full size: [PNG](img/diagrams/06-auth-3.png) · [SVG](img/diagrams/06-auth-
 
 ## Part B — Build user auth in Cognito (25m, console, step by step)
 
+### Before you start: the values you need
+
+| Value | What it is | Where it comes from | Example |
+|---|---|---|---|
+| **User pool ID** | Your user directory; the test users live in it | `RstAuthStack` output `UserPoolId`, from [account setup](../prereqs.md#account-setup) | `us-east-1_AbCdEf123` |
+| **`McpUrl`** | Your server's address | [M05 step 4](05-deploy-ecs.md) (stack output `McpUrl`) | `https://d123abc.cloudfront.net/mcp` |
+| **Cognito domain** | The web address of the sign-in page | **You create it in step 1** (shared account: the instructor gives it to you) | `https://rst-mcp-yourname.auth.us-east-1.amazoncognito.com` |
+| **App client IDs** | One ID per app that signs users in | **You create them** in steps 3–5 | `5fmfu9950v...` |
+
+Look up the first two any time (shared account: `RstMcpStack-<name>`):
+
+```bash
+aws cloudformation describe-stacks --stack-name RstAuthStack --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text
+aws cloudformation describe-stacks --stack-name RstMcpStack --query "Stacks[0].Outputs[?OutputKey=='McpUrl'].OutputValue" --output text
+```
+
+```powershell
+aws cloudformation describe-stacks --stack-name RstAuthStack --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text
+aws cloudformation describe-stacks --stack-name RstMcpStack --query "Stacks[0].Outputs[?OutputKey=='McpUrl'].OutputValue" --output text
+```
+
+In the AWS console, open **Amazon Cognito → User pools → `rst-workshop`** (the pool with that ID). All steps below happen inside it. Console labels change from time to time; if one differs, look for the nearest match.
+
 > **Shared account?** Everyone uses one user pool, and a user pool has only one sign-in domain. So:
 >
 > - **Skip step 1.** The instructor has created the domain; use the `CognitoDomain` they give you.
@@ -90,25 +113,35 @@ Open full size: [PNG](img/diagrams/06-auth-3.png) · [SVG](img/diagrams/06-auth-
 > - **The test users are shared**: everyone signs in as `manager_branch_12`, `analyst_hq` and so on.
 > - **Step 7:** use the shared-account deploy command shown there.
 
-1. Domain (managed login).
+1. **Domain.** **Branding → Domain → Create Cognito domain.** Choose a prefix, for example `rst-mcp-<yourname>` (it must be unique in the region), and **Managed login** as the version. The full domain, `https://<prefix>.auth.<region>.amazoncognito.com`, is your **Cognito domain**: note it for Parts C and D.
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: domain settings with managed login selected · save as `img/m06-cognito-domain.png`
 
-2. Resource server: name `rst-mcp` (the name cannot contain `:` or `/`), **identifier = your `McpUrl`**, scope `read`. The full scope is `<McpUrl>/read`.
+2. **Resource server.** **Branding → Domain → Resource servers → Create resource server.** Name `rst-mcp` (the name cannot contain `:` or `/`), **identifier = your `McpUrl`** exactly, and one custom scope, `read`. The full scope is `<McpUrl>/read` (Part A explains why).
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: resource server with identifier = `McpUrl` and scope `read` · save as `img/m06-resource-server.png`
 
-3. App client `quick-user`: confidential, auth code grant, scopes `openid <McpUrl>/read`. Callback URL: Quick's redirect URL, `https://<region>.quicksight.aws.amazon.com/sn/oauthcallback` (Quick pre-fills it in Part C; check it matches).
+3. **App client `quick-user`** (Quick signs users in). **Applications → App clients → Create app client**, type **Traditional web application** (it has a client secret), name `quick-user`. Return URL: Quick's redirect URL, `https://<region>.quicksight.aws.amazon.com/sn/oauthcallback` (Quick pre-fills it in Part C; check it matches). Then open the client → **Login pages → Edit**: grant type **Authorization code grant**; scopes **openid** and your **`<McpUrl>/read`**.
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: `quick-user` app client, login pages settings (grant type, scopes, callback URL) · save as `img/m06-app-client-quick-user.png`
 
-4. App client `quick-s2s`: confidential, client credentials, scope `<McpUrl>/read`.
-5. App client `kiro-user`: public (no secret), auth code grant, scopes `openid <McpUrl>/read`, callbacks `http://localhost:7778/oauth/callback` (Kiro) and `http://localhost:8765/callback` (`get_token.py`).
-6. **Managed login style for each client that signs users in** (`quick-user`, `kiro-user`): Managed login → Create style (Cognito defaults are fine). Without a style the login page shows "Login pages unavailable".
+4. **App client `quick-s2s`** (Quick with no user). Create app client, type **Machine-to-machine application**, name `quick-s2s`, and choose the scope **`<McpUrl>/read`**. It uses the client credentials grant.
+5. **App client `kiro-user`** (Kiro and `get_token.py` sign users in). Create app client, type **Single-page application** (public, no secret), name `kiro-user`. Return URLs: `http://localhost:7778/oauth/callback` (Kiro) and `http://localhost:8765/callback` (`get_token.py`). In **Login pages → Edit**: **Authorization code grant**; scopes **openid** and **`<McpUrl>/read`**.
+6. **Managed login style for each client that signs users in** (`quick-user`, `kiro-user`): **Branding → Managed login → Create style**, choose the app client, keep the Cognito defaults, save. Without a style the login page shows "Login pages unavailable".
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: Managed login, style created for `kiro-user` · save as `img/m06-managed-login-style.png`
 
-7. Redeploy with auth on:
+    List the three client IDs for step 7:
+
+    ```bash
+    aws cognito-idp list-user-pool-clients --user-pool-id <user pool id> --query "UserPoolClients[].[ClientName,ClientId]" --output table
+    ```
+
+    ```powershell
+    aws cognito-idp list-user-pool-clients --user-pool-id <user pool id> --query "UserPoolClients[].[ClientName,ClientId]" --output table
+    ```
+
+7. Redeploy with auth on. `oidcIssuer` is built from your **region** and **user pool ID**; `oidcAllowedAudiences` is the three client IDs, comma-separated, no spaces. For example, with user pool `us-east-1_AbCdEf123`: `-c oidcIssuer=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_AbCdEf123`.
 
     ```bash
     npx cdk deploy RstMcpStack \
