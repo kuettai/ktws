@@ -51,7 +51,14 @@ Open full size: [PNG](img/diagrams/02-runtime-1.png) · [SVG](img/diagrams/02-ru
 
 - Have these from Day 1 at hand: your **user pool ID**, the **three app client IDs** (`kiro-user`, `quick-user`, `quick-s2s`), your **Cognito domain** and your **`McpUrl`**. M06 Part B step 6 shows the commands to list them.
 
-> **Shared account?** Use your participant name everywhere today: project `rstday2<name>` (letters and digits only), and pass `--participant <name>` to the script in step 5.
+> **Shared account?** Every participant does every step below on their own laptop: the names keep you apart. Use your participant name everywhere today:
+>
+> - the stack check above: `--stack-name RstMcpStack-<name>`; a redeploy is your M06 step 7 shared-account command (`RstMcpStack-<name> --exclusively -c participant=<name> ...`);
+> - project `rstday2<name>` in step 2 (letters and digits only); its runtime becomes `rstday2<name>_RstMcp`;
+> - your own app client IDs (`kiro-user-<name>`, `quick-user-<name>`, `quick-s2s-<name>`) in step 4;
+> - `--participant <name>` for the script in step 5.
+>
+> Shared by everyone, and set up once by the instructor: the user pool, the Redshift data, and the task role `rst-mcp-task-<region>` that every runtime uses.
 
 ## Steps
 
@@ -231,5 +238,6 @@ Keep the runtime for M03. To delete it at the end of the day: in `rstday2/`, `ag
 
 ## Instructor notes
 - Tested with `@aws/agentcore` 0.31.1. The CLI deploys through CDK, so accounts need the CDK bootstrap from Day 1 (it is reused).
+- Before Day 2, redeploy `RstDataStack` once with the current code (`npx cdk deploy RstDataStack` plus its usual `-c` options). It adds the permissions the task role needs to write Runtime logs and traces. In one-account-per-participant mode this happens by itself when participants redeploy `RstMcpStack` (CDK deploys `RstDataStack` with it); in a shared account they use `--exclusively`, so it doesn't.
 - The first `agentcore deploy` in an account also turns on CloudWatch Transaction Search (used in M05); traces take about 10 minutes to appear the first time.
 - `configure_runtime.py` finds the app clients by name (`kiro-user`, `quick-user`, `quick-s2s`, or with `-<participant>`). If participants named theirs differently, they can edit `OIDC_ALLOWED_AUDIENCES` in `agentcore.json`.
