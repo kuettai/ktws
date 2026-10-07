@@ -117,7 +117,7 @@ In the AWS console, open **Amazon Cognito → User pools → `rst-workshop`** (t
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: domain settings with managed login selected · save as `img/m06-cognito-domain.png`
 
-2. **Resource server.** In the left menu choose **Applications → Resource servers → Create resource server** (some console versions show it under **Branding → Domain**, in the **Resource servers** section). **Resource server name** `rst-mcp` (it cannot contain `:` or `/`), **Resource server identifier** = your `McpUrl` exactly, and under **Custom scopes** one scope: **Scope name** `read`, with any description. Choose **Create**. The full scope is `<McpUrl>/read` (Part A explains why).
+2. **Resource server.** In the left menu choose **Applications → Resource servers → Create resource server** (some console versions show it under **Branding → Domain**, in the **Resource servers** section). **Resource server name** `rst-mcp` (it cannot contain `:` or `/`), **Resource server identifier** = your `McpUrl` exactly, and under **Custom scopes** add one scope: **Scope name** `read` (just the word; Cognito adds the identifier in front) and **Description** `Read restaurant data through the MCP server` (any text works, it is only a label). Choose **Create**. The full scope is `<McpUrl>/read` (Part A explains why).
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Cognito console: resource server with identifier = `McpUrl` and scope `read` · save as `img/m06-resource-server.png`
 
