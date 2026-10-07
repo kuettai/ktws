@@ -65,3 +65,9 @@ def test_transfer_moves_stock():
 def test_today_sales():
     s = client.get("/sales/12/today", headers=KEY).json()
     assert s["businessDate"] == "2026-10-01" and s["orderCount"] > 0 and s["revenue"] > 0
+
+
+def test_ops_prefix_reaches_the_same_api():
+    """CloudFront sends https://<cdn>/ops/... here (Day 2): same routes, same API key check."""
+    assert client.get("/ops/branches", headers=KEY).status_code == 200
+    assert client.get("/ops/branches").status_code == 401

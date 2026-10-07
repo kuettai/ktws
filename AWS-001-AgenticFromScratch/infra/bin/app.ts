@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { App } from 'aws-cdk-lib';
+import { AgentCoreStack } from '../lib/agentcore-stack';
 import { AuthStack } from '../lib/auth-stack';
 import { DataStack } from '../lib/data-stack';
 import { McpStack } from '../lib/mcp-stack';
@@ -51,3 +52,6 @@ new McpStack(app, participant ? `RstMcpStack-${participant}` : 'RstMcpStack', {
   oidcRequiredScopes: ctx('oidcRequiredScopes'),
   participant,
 });
+
+// Day 2: the Gateway's IAM role and request interceptor (Module 03)
+new AgentCoreStack(app, participant ? `RstAgentCoreStack-${participant}` : 'RstAgentCoreStack', { env, participant });

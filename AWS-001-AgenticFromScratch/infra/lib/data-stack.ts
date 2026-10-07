@@ -111,6 +111,25 @@ export class DataStack extends Stack {
       actions: ['redshift-data:DescribeStatement', 'redshift-data:GetStatementResult', 'redshift-data:CancelStatement'],
       resources: ['*'], // statement-level APIs; callers can only see their own statements
     }));
+    // Day 2: when AgentCore Runtime uses this role, it writes the server's logs, traces and metrics.
+    this.mcpTaskRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents', 'logs:DescribeLogStreams'],
+      resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/runtimes/*`,
+        `arn:aws:logs:${this.region}:${this.account}:log-group:/aws/bedrock-agentcore/runtimes/*:log-stream:*`],
+    }));
+    this.mcpTaskRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['logs:DescribeLogGroups'],
+      resources: [`arn:aws:logs:${this.region}:${this.account}:log-group:*`],
+    }));
+    this.mcpTaskRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['xray:PutTraceSegments', 'xray:PutTelemetryRecords', 'xray:GetSamplingRules', 'xray:GetSamplingTargets'],
+      resources: ['*'],
+    }));
+    this.mcpTaskRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['cloudwatch:PutMetricData'],
+      resources: ['*'],
+      conditions: { StringEquals: { 'cloudwatch:namespace': 'bedrock-agentcore' } },
+    }));
 
     const seedFn = new lambda.Function(this, 'SeedFn', {
       runtime: lambda.Runtime.PYTHON_3_12,

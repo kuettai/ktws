@@ -166,15 +166,28 @@ export class McpStack extends Stack {
       backend.connections.allowFrom(mcp, ec2.Port.allTcp(), 'MCP server');
     }
 
-    alb.addListener('Http', { port: 80 }).addTargets('Mcp', {
+    const listener = alb.addListener('Http', { port: 80 });
+    listener.addTargets('Mcp', {
       port: 8000,
       protocol: elbv2.ApplicationProtocol.HTTP,
       targets: [mcp],
       healthCheck: { path: '/health', healthyHttpCodes: '200' },
       deregistrationDelay: Duration.seconds(10),
     });
+    // Day 2: AgentCore Gateway and Runtime run outside this VPC, so they reach the Ops API through
+    // CloudFront at https://<cdn>/ops/... It still needs the X-API-Key header on every call.
+    listener.addTargets('OpsApi', {
+      priority: 10,
+      conditions: [elbv2.ListenerCondition.pathPatterns(['/ops', '/ops/*'])],
+      port: 8080,
+      protocol: elbv2.ApplicationProtocol.HTTP,
+      targets: [mockApi],
+      healthCheck: { path: '/health', healthyHttpCodes: '200' },
+      deregistrationDelay: Duration.seconds(10),
+    });
 
     new CfnOutput(this, 'McpUrl', { value: publicUrl });
+    new CfnOutput(this, 'OpsApiUrl', { value: `https://${distribution.distributionDomainName}/ops` });
     new CfnOutput(this, 'McpPublicUrlNote', {
       value: props.oidcIssuer ? 'Auth ENABLED' : 'Auth DISABLED - public and unauthenticated until Module 06',
     });

@@ -15,6 +15,15 @@ from app import data
 app = FastAPI(title="Restaurant Operations API (mock)", version="1.0.0")
 
 
+@app.middleware("http")
+async def strip_ops_prefix(request: Request, call_next):
+    """Accept /ops/<path> as well as /<path>: CloudFront sends the public /ops/* path here (Day 2)."""
+    path = request.scope["path"]
+    if path == "/ops" or path.startswith("/ops/"):
+        request.scope["path"] = path[len("/ops"):] or "/"
+    return await call_next(request)
+
+
 class ApiError(Exception):
     def __init__(self, status: int, code: str, message: str):
         self.status, self.code, self.message = status, code, message

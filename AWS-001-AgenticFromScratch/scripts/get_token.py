@@ -55,7 +55,12 @@ def login(domain: str, client_id: str, client_secret: str | None, scope: str) ->
 
     class Callback(http.server.BaseHTTPRequestHandler):
         def do_GET(self):
-            query = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(self.path).query))
+            parsed = urllib.parse.urlparse(self.path)
+            query = dict(urllib.parse.parse_qsl(parsed.query))
+            if parsed.path != "/callback" or not ("code" in query or "error" in query):
+                self.send_response(404)  # e.g. the browser asking for /favicon.ico
+                self.end_headers()
+                return
             ok = query.get("state") == state and "code" in query
             result.update(query if ok else {"error": query.get("error", "state mismatch")})
             self.send_response(200 if ok else 400)
