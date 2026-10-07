@@ -102,33 +102,35 @@ Tool names on the Gateway are `<target>___<tool>` (three underscores): `OpsApi__
 
     Each prints a `credentialProviderArn`. In the console: **Amazon Bedrock AgentCore → Identity** lists both. Now delete the two files: `rm rstday2/gateway/api-key-provider.json rstday2/gateway/oauth-provider.json` (PowerShell: `Remove-Item rstday2\gateway\api-key-provider.json, rstday2\gateway\oauth-provider.json`).
 
-4. **Create the Gateway (5m).**
+4. **Create the Gateway (5m).** The gateway's name comes from `gateway.json`: `rst-gateway`, or `rst-gateway-<name>` if you gave `--participant <name>` in step 2 (open the file to check). The command keeps the new gateway's ID in a variable, `GATEWAY_ID`, for the next steps:
 
     ```bash
-    aws bedrock-agentcore-control create-gateway --cli-input-json file://rstday2/gateway/gateway.json \
-      --query "[gatewayId,gatewayUrl]" --output text
-    ```
-
-    ```powershell
-    aws bedrock-agentcore-control create-gateway --cli-input-json file://rstday2/gateway/gateway.json `
-      --query "[gatewayId,gatewayUrl]" --output text
-    ```
-
-    It prints the **gateway ID** (`rst-gateway-abc123xyz`) and the **Gateway URL** (`https://rst-gateway-abc123xyz.gateway.bedrock-agentcore.<region>.amazonaws.com/mcp`). Keep both in variables for the next steps (shared account: use your gateway's name, `rst-gateway-<name>`):
-
-    ```bash
-    export GATEWAY_ID=$(aws bedrock-agentcore-control list-gateways --query "items[?name=='rst-gateway'].gatewayId" --output text)
+    export GATEWAY_ID=$(aws bedrock-agentcore-control create-gateway --cli-input-json file://rstday2/gateway/gateway.json \
+      --query gatewayId --output text)
     export GATEWAY_URL=$(aws bedrock-agentcore-control get-gateway --gateway-identifier $GATEWAY_ID --query gatewayUrl --output text)
     echo $GATEWAY_ID $GATEWAY_URL
     ```
 
     ```powershell
-    $env:GATEWAY_ID = (aws bedrock-agentcore-control list-gateways --query "items[?name=='rst-gateway'].gatewayId" --output text)
+    $env:GATEWAY_ID = (aws bedrock-agentcore-control create-gateway --cli-input-json file://rstday2/gateway/gateway.json `
+      --query gatewayId --output text)
     $env:GATEWAY_URL = (aws bedrock-agentcore-control get-gateway --gateway-identifier $env:GATEWAY_ID --query gatewayUrl --output text)
     echo $env:GATEWAY_ID $env:GATEWAY_URL
     ```
 
-    > **New terminal?** Run these two lines again, and get a new `RST_MCP_TOKEN` (M02 step 7) with `RST_MCP_SCOPE` set. Every later module that uses the Gateway assumes `GATEWAY_ID`, `GATEWAY_URL` and `RST_MCP_TOKEN` are set.
+    You see the **gateway ID** (`rst-gateway-abc123xyz`) and the **Gateway URL** (`https://rst-gateway-abc123xyz.gateway.bedrock-agentcore.<region>.amazonaws.com/mcp`).
+
+    > **New terminal?** Variables are lost. Find your gateway again by its name (shared account: `rst-gateway-<name>`), and get a new `RST_MCP_TOKEN` (M02 step 7) with `RST_MCP_SCOPE` set. Every later module that uses the Gateway assumes `GATEWAY_ID`, `GATEWAY_URL` and `RST_MCP_TOKEN` are set.
+    >
+    > ```bash
+    > export GATEWAY_ID=$(aws bedrock-agentcore-control list-gateways --query "items[?name=='rst-gateway'].gatewayId" --output text)
+    > export GATEWAY_URL=$(aws bedrock-agentcore-control get-gateway --gateway-identifier $GATEWAY_ID --query gatewayUrl --output text)
+    > ```
+    >
+    > ```powershell
+    > $env:GATEWAY_ID = (aws bedrock-agentcore-control list-gateways --query "items[?name=='rst-gateway'].gatewayId" --output text)
+    > $env:GATEWAY_URL = (aws bedrock-agentcore-control get-gateway --gateway-identifier $env:GATEWAY_ID --query gatewayUrl --output text)
+    > ```
 
     Wait until the Gateway is ready (about 30 seconds):
 
