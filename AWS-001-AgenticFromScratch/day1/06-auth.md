@@ -143,7 +143,7 @@ In the AWS console, open **Amazon Cognito → User pools → `rst-workshop`** (t
     aws cognito-idp list-user-pool-clients --user-pool-id <user pool id> --query "UserPoolClients[].[ClientName,ClientId]" --output table
     ```
 
-7. Redeploy with auth on. `oidcIssuer` is built from your **region** and **user pool ID**; `oidcAllowedAudiences` is the three client IDs, comma-separated, no spaces. For example, with user pool `us-east-1_AbCdEf123`: `-c oidcIssuer=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_AbCdEf123`.
+7. Redeploy with auth on, from the `infra/` folder (as in M05). `oidcIssuer` is built from your **region** and **user pool ID**; `oidcAllowedAudiences` is the three client IDs, comma-separated, no spaces. For example, with user pool `us-east-1_AbCdEf123`: `-c oidcIssuer=https://cognito-idp.us-east-1.amazonaws.com/us-east-1_AbCdEf123`.
 
     ```bash
     npx cdk deploy RstMcpStack \
@@ -175,7 +175,35 @@ In the AWS console, open **Amazon Cognito → User pools → `rst-workshop`** (t
       -c oidcRequiredScopes=<McpUrl>/read
     ```
 
-8. Inspector without token → `401`. Open `https://<cdn>/.well-known/oauth-protected-resource/mcp` in a browser and read it: `resource` is your `McpUrl`, and `scopes_supported` is `<McpUrl>/read`.
+8. **Check that the server now wants a token.** In a terminal, put your `McpUrl` in a variable, then call the server with no token. Expect `401`:
+
+    ```bash
+    MCP_URL=<McpUrl>        # e.g. https://d123abc.cloudfront.net/mcp
+    curl -s -o /dev/null -w "%{http_code}\n" -X POST "$MCP_URL" \
+      -H "Content-Type: application/json" -H "Accept: application/json, text/event-stream" \
+      -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+    ```
+
+    ```powershell
+    $McpUrl = "<McpUrl>"    # e.g. https://d123abc.cloudfront.net/mcp
+    try {
+      Invoke-WebRequest -Method Post -Uri $McpUrl -ContentType "application/json" `
+        -Headers @{ Accept = "application/json, text/event-stream" } `
+        -Body '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' | Select-Object -ExpandProperty StatusCode
+    } catch { $_.Exception.Response.StatusCode.value__ }
+    ```
+
+    Then read the metadata that tells MCP clients where to sign in. `resource` must be your `McpUrl`, and `scopes_supported` must be `<McpUrl>/read`:
+
+    ```bash
+    curl -s "${MCP_URL%/mcp}/.well-known/oauth-protected-resource/mcp"
+    ```
+
+    ```powershell
+    Invoke-RestMethod "$($McpUrl -replace '/mcp$','')/.well-known/oauth-protected-resource/mcp" | ConvertTo-Json
+    ```
+
+    (Or open that address in a browser.) Optional: `npx @modelcontextprotocol/inspector --server-url <McpUrl> --transport http`, then **Connect** without a token; it fails with `401`, where in M05 it connected.
 
     > **Screenshot** — `<SCREENSHOT_YET_TO_PREPARE>` Browser showing the protected resource metadata JSON · save as `img/m06-protected-resource-metadata.png`
 
